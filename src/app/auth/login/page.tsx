@@ -2,9 +2,9 @@ import Link from "next/link";
 
 import { APP_CONFIG } from "@/config/app-config";
 
-import { LoginForm } from "../../_components/login-form";
+import { LoginForm } from "../_components/login-form";
 
-export default function LoginV2() {
+export default function LoginPage() {
   return (
     <>
       <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[350px]">
@@ -19,7 +19,7 @@ export default function LoginV2() {
 
       <div className="absolute top-5 flex w-full justify-end px-10">
         <div className="text-muted-foreground text-sm">
-          Don&apos;t have an account?{" "}
+          Interested?{" "}
           <Link
             target="_blank"
             className="text-foreground underline"
