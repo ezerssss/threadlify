@@ -1,4 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
+import { FirebaseError } from "firebase/app";
+import { AuthErrorCodes } from "firebase/auth";
+import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -39,4 +42,28 @@ export function formatCurrency(
   };
 
   return new Intl.NumberFormat(locale, formatOptions).format(amount);
+}
+
+export function toastError(error: unknown) {
+  console.error(error);
+
+  let message = "Something went wrong.";
+
+  if (error instanceof FirebaseError) {
+    if (error.code === AuthErrorCodes.INTERNAL_ERROR) {
+      message = error.message;
+    } else if (error.code === AuthErrorCodes.INVALID_LOGIN_CREDENTIALS) {
+      message = "Invalid username or password";
+    } else if (error.code === AuthErrorCodes.POPUP_CLOSED_BY_USER) {
+      message = "Login cancelled by user.";
+    } else {
+      message = error.message;
+    }
+  } else if (error instanceof Error) {
+    message = error.message;
+  } else if (typeof error === "string") {
+    message = error;
+  }
+
+  toast.error(message);
 }
