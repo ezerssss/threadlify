@@ -32,7 +32,7 @@ export function GoogleButton({ className, ...props }: React.ComponentProps<typeo
       const user = result.user;
 
       console.log(credential, token, user);
-      router.replace("/dashboard/default");
+      router.replace("/dashboard");
     } catch (error) {
       toastError(error);
     } finally {

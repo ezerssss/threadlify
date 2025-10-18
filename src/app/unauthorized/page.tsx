@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Lock } from "lucide-react";
 
-export default function page() {
+export default function UnauthorizedPage() {
   return (
     <div className="bg-background flex min-h-dvh flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-md text-center">
