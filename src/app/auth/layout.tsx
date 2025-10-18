@@ -19,9 +19,7 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
           <div className="absolute bottom-10 flex w-full justify-between px-10">
             <div className="text-primary-foreground flex-1 space-y-1">
               <h2 className="font-medium">Ready to uncover conversations?</h2>
-              <p className="text-sm">
-                Book your onboarding call, get your account set up, and dive into your dashboard in minutes.
-              </p>
+              <p className="text-sm">Get your account set up, and dive into your dashboard in minutes.</p>
             </div>
             <Separator orientation="vertical" className="mx-3 !h-auto" />
           </div>
