@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { Loader2Icon } from "lucide-react";
 import { siGoogle } from "simple-icons";
+import { toast } from "sonner";
 
 import { SimpleIcon } from "@/components/simple-icon";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { auth } from "@/firebase";
 import { cn, toastError } from "@/lib/utils";
 
@@ -17,6 +18,7 @@ const provider = new GoogleAuthProvider();
 
 export function GoogleButton({ className, ...props }: React.ComponentProps<typeof Button>) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleGoogleLogin() {
@@ -26,13 +28,11 @@ export function GoogleButton({ className, ...props }: React.ComponentProps<typeo
 
     try {
       setIsLoading(true);
-      const result = await signInWithPopup(auth, provider);
-      const credential = GoogleAuthProvider.credentialFromResult(result);
-      const token = credential?.accessToken;
-      const user = result.user;
+      await signInWithPopup(auth, provider);
 
-      console.log(credential, token, user);
-      router.replace("/dashboard");
+      toast.info("Successfully logged-in.");
+
+      router.push(searchParams.get("backTo") ?? "/dashboard");
     } catch (error) {
       toastError(error);
     } finally {
@@ -43,7 +43,7 @@ export function GoogleButton({ className, ...props }: React.ComponentProps<typeo
   return (
     <Button variant="secondary" disabled={isLoading} className={cn(className)} {...props} onClick={handleGoogleLogin}>
       {isLoading ? (
-        <Loader2Icon className="animate-spin" />
+        <Spinner />
       ) : (
         <>
           <SimpleIcon icon={siGoogle} className="size-4" />
