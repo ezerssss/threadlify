@@ -1,12 +1,10 @@
-import { useState } from "react";
-
 import { Button } from "@/components/ui/button";
 
 interface PropsInterface {
   url: string;
   setUrl: (name: string) => void;
   handleBack: () => void;
-  handleNext: (url: string) => void;
+  handleNext: () => void;
 }
 
 function InputCompanyUrl(props: PropsInterface) {
@@ -14,7 +12,7 @@ function InputCompanyUrl(props: PropsInterface) {
 
   return (
     <>
-      <p className="text-muted/70 text-sm">Step 2 of 2</p>
+      <p className="text-muted/70 text-sm">Step 2 of 3</p>
 
       <h1 className="max-w-[750px] text-3xl font-bold sm:text-4xl lg:text-6xl">What&apos;s your company website?</h1>
 
@@ -25,7 +23,7 @@ function InputCompanyUrl(props: PropsInterface) {
       <input
         autoFocus
         className="text-md mt-8 w-full rounded-lg border px-3 py-2 outline sm:text-lg"
-        placeholder="url://threadlify"
+        placeholder="yourcompany.com"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
       />
@@ -33,9 +31,9 @@ function InputCompanyUrl(props: PropsInterface) {
       <div className="mt-10 flex gap-2">
         <Button
           className="bg-background text-primary hover:bg-background border px-12 py-5 font-bold"
-          onClick={() => handleNext(url)}
+          onClick={handleNext}
         >
-          Submit
+          Next
         </Button>
         <Button className="bg-primary text-background border px-12 py-5 font-bold" onClick={handleBack}>
           Back

@@ -1,28 +1,33 @@
 "use client";
 
+import { useState } from "react";
+
+import { useRouter, useSearchParams } from "next/navigation";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import ky from "ky";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
-const FormSchema = z
-  .object({
-    email: z.string().email({ message: "Please enter a valid email address." }),
-    password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-    confirmPassword: z.string().min(6, { message: "Confirm Password must be at least 6 characters." }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match.",
-    path: ["confirmPassword"],
-  });
+import { Spinner } from "@/components/ui/spinner";
+import { REGISTER_URL } from "@/constants/url";
+import { auth } from "@/firebase";
+import { toastError } from "@/lib/utils";
+import { GenericAPIResponse } from "@/types/generics";
+import { RegisterUserSchema, RegisterUserType } from "@/types/user";
 
 export function RegisterForm() {
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<z.infer<typeof RegisterUserSchema>>({
+    resolver: zodResolver(RegisterUserSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -30,15 +35,23 @@ export function RegisterForm() {
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    toast("You submitted the following values", {
-      description: (
-        <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
-  };
+  async function onSubmit(formValues: RegisterUserType) {
+    const { email, password } = formValues;
+
+    try {
+      setIsLoading(true);
+      const data: GenericAPIResponse = await ky.post(REGISTER_URL, { json: formValues }).json();
+
+      await signInWithEmailAndPassword(auth, email, password);
+      toast.success(data.message);
+
+      router.push("/onboarding");
+    } catch (error) {
+      toastError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <Form {...form}>
@@ -88,8 +101,8 @@ export function RegisterForm() {
             </FormItem>
           )}
         />
-        <Button className="w-full" type="submit">
-          Register
+        <Button className="w-full" type="submit" disabled={isLoading}>
+          {isLoading ? <Spinner /> : "Register"}
         </Button>
       </form>
     </Form>

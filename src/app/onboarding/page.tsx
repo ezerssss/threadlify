@@ -4,32 +4,71 @@ import { useState } from "react";
 
 import { useRouter } from "next/navigation";
 
+import ky from "ky";
+import { toast } from "sonner";
+
 import ProtectedRouteWrapper from "@/components/protected-route-wrapper";
+import { ONBOARDING_URL } from "@/constants/url";
+import useUser from "@/hooks/use-user";
+import { toastError } from "@/lib/utils";
 
 import InputCompanyName from "./_components/company-name";
+import InputCompanyStrategy from "./_components/company-strategy";
 import InputCompanyUrl from "./_components/company-url";
 
 function OnboardingPage() {
   const router = useRouter();
+  const user = useUser();
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
+  const [strategy, setStrategy] = useState("");
   const [step, setStep] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
-  function handleNameInput(companyName: string) {
-    if (!companyName) {
+  function handleNameNext() {
+    if (!name) {
       return;
     }
 
     setStep(1);
   }
 
-  function handleUrlInput(companyUrl: string) {
-    if (!companyUrl) {
+  function handleUrlNext() {
+    if (!url) {
       return;
     }
 
-    setUrl(companyUrl);
-    router.replace("/dashboard");
+    setStep(2);
+  }
+
+  async function handleStrategyNext() {
+    if (!strategy) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      if (!user) {
+        throw new Error("Your are unauthorized to do this action.");
+      }
+
+      const idToken = await user.getIdToken();
+
+      await ky.post(ONBOARDING_URL, {
+        json: { name, url, strategy },
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      toast.success("Success!");
+      router.replace("/dashboard");
+    } catch (error) {
+      toastError(error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -37,9 +76,18 @@ function OnboardingPage() {
       <main>
         <div className="h-dvh justify-center p-2 lg:grid lg:grid-cols-6">
           <div className="bg-primary text-primary-foreground order-1 h-full space-y-5 rounded-3xl p-8 sm:p-14 md:p-28 lg:order-2 lg:col-span-5">
-            {step === 0 && <InputCompanyName name={name} setName={setName} handleNext={handleNameInput} />}
+            {step === 0 && <InputCompanyName name={name} setName={setName} handleNext={handleNameNext} />}
             {step === 1 && (
-              <InputCompanyUrl url={url} setUrl={setUrl} handleBack={() => setStep(0)} handleNext={handleUrlInput} />
+              <InputCompanyUrl url={url} setUrl={setUrl} handleBack={() => setStep(0)} handleNext={handleUrlNext} />
+            )}
+            {step === 2 && (
+              <InputCompanyStrategy
+                strategy={strategy}
+                setStrategy={setStrategy}
+                handleBack={() => setStep(1)}
+                handleNext={handleStrategyNext}
+                isLoading={isLoading}
+              />
             )}
           </div>
 

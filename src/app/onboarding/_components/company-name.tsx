@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 interface PropsInterface {
   name: string;
   setName: (name: string) => void;
-  handleNext: (name: string) => void;
+  handleNext: () => void;
 }
 
 function InputCompanyName(props: PropsInterface) {
@@ -11,7 +11,7 @@ function InputCompanyName(props: PropsInterface) {
 
   return (
     <>
-      <p className="text-muted/70 text-sm">Step 1 of 2</p>
+      <p className="text-muted/70 text-sm">Step 1 of 3</p>
 
       <h1 className="max-w-[750px] text-3xl font-bold sm:text-4xl lg:text-6xl">
         What&apos;s the name of your company or team?
@@ -31,7 +31,7 @@ function InputCompanyName(props: PropsInterface) {
 
       <Button
         className="bg-background text-primary hover:bg-background mt-10 border px-12 py-5 font-bold"
-        onClick={() => handleNext(name)}
+        onClick={handleNext}
       >
         Next
       </Button>
