@@ -11,9 +11,9 @@ export const UserDataSchema = z.object({
   }),
   strategy: z.string().min(1),
   isOnboarded: z.boolean(),
+  processStatus: z.string(),
   createdAt: z.iso.datetime(),
 });
-
 export type UserDataType = z.infer<typeof UserDataSchema>;
 
 export const RegisterUserSchema = z
