@@ -1,3 +1,6 @@
+import http from "http";
+import https from "https";
+
 import { clsx, type ClassValue } from "clsx";
 import { FirebaseError } from "firebase/app";
 import { AuthErrorCodes } from "firebase/auth";
@@ -66,4 +69,23 @@ export function toastError(error: unknown) {
   }
 
   toast.error(message);
+}
+
+export function isValidUrl(url: string, callback: (valid: boolean) => void) {
+  const client = url.startsWith("https") ? https : http;
+  client
+    .get(url, (res) => {
+      const { statusCode } = res;
+
+      if (!statusCode) {
+        callback(false);
+        return;
+      }
+
+      const isSuccessCode = statusCode >= 200 && statusCode < 400;
+      callback(isSuccessCode);
+    })
+    .on("error", (_) => {
+      callback(false);
+    });
 }
