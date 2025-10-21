@@ -11,7 +11,10 @@ export const UserDataSchema = z.object({
   }),
   strategy: z.string().min(1),
   isOnboarded: z.boolean(),
+  isInitialFetchDone: z.boolean(),
   processStatus: z.string(),
+  totalScrapedPosts: z.number().nonnegative(),
+  totalAICalls: z.number().nonnegative(),
   createdAt: z.iso.datetime(),
 });
 export type UserDataType = z.infer<typeof UserDataSchema>;
