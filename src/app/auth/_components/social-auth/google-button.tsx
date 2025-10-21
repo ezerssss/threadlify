@@ -32,7 +32,6 @@ export function GoogleButton({ className, ...props }: React.ComponentProps<typeo
     try {
       setIsLoading(true);
       const { user } = await signInWithPopup(auth, provider);
-      toast.info("Successfully logged-in.");
 
       const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
       const userDoc = await getDoc(userDocRef);

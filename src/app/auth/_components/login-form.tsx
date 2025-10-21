@@ -45,7 +45,6 @@ export function LoginForm() {
       setIsLoading(true);
 
       const { user } = await signInWithEmailAndPassword(auth, email, password);
-      toast.success("Successfully logged-in.");
 
       const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
       const userDoc = await getDoc(userDocRef);

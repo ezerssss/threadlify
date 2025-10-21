@@ -23,7 +23,6 @@ import { RegisterUserSchema, RegisterUserType } from "@/types/user";
 
 export function RegisterForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof RegisterUserSchema>>({
@@ -43,7 +42,6 @@ export function RegisterForm() {
       const data: GenericAPIResponse = await ky.post(REGISTER_URL, { json: formValues }).json();
 
       await signInWithEmailAndPassword(auth, email, password);
-      toast.success(data.message);
 
       router.push("/onboarding");
     } catch (error) {

@@ -4,13 +4,14 @@ import { useState } from "react";
 
 import { useRouter } from "next/navigation";
 
+import { StatusCodes } from "http-status-codes";
 import ky from "ky";
-import { toast } from "sonner";
 
 import ProtectedRouteWrapper from "@/components/protected-route-wrapper";
 import { ONBOARDING_URL } from "@/constants/url";
 import useUser from "@/hooks/use-user";
 import { toastError } from "@/lib/utils";
+import { GenericAPIResponse } from "@/types/generics";
 
 import InputCompanyName from "./_components/company-name";
 import InputCompanyStrategy from "./_components/company-strategy";
@@ -20,8 +21,12 @@ function OnboardingPage() {
   const router = useRouter();
   const user = useUser();
   const [name, setName] = useState("");
+
   const [url, setUrl] = useState("");
+  const [isUrlValid, setIsUrlValid] = useState(true);
+
   const [strategy, setStrategy] = useState("");
+
   const [step, setStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -55,14 +60,26 @@ function OnboardingPage() {
 
       const idToken = await user.getIdToken();
 
-      await ky.post(ONBOARDING_URL, {
+      const res = await ky.post(ONBOARDING_URL, {
         json: { name, url, strategy },
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
+        throwHttpErrors: false,
       });
 
-      toast.success("Success!");
+      if (res.status !== StatusCodes.OK) {
+        const data: GenericAPIResponse = await res.json();
+
+        if (data.message === "URL not valid") {
+          setStep(1);
+          setIsUrlValid(false);
+          throw new Error("We couldn’t reach this URL. Please check that the address is correct and accessible.");
+        } else {
+          throw new Error(data.message);
+        }
+      }
+
       router.replace("/dashboard");
     } catch (error) {
       toastError(error);
@@ -78,7 +95,14 @@ function OnboardingPage() {
           <div className="bg-primary text-primary-foreground order-1 h-full space-y-5 rounded-3xl p-8 sm:p-14 md:p-28 lg:order-2 lg:col-span-5">
             {step === 0 && <InputCompanyName name={name} setName={setName} handleNext={handleNameNext} />}
             {step === 1 && (
-              <InputCompanyUrl url={url} setUrl={setUrl} handleBack={() => setStep(0)} handleNext={handleUrlNext} />
+              <InputCompanyUrl
+                url={url}
+                setUrl={setUrl}
+                isValid={isUrlValid}
+                setIsValid={setIsUrlValid}
+                handleBack={() => setStep(0)}
+                handleNext={handleUrlNext}
+              />
             )}
             {step === 2 && (
               <InputCompanyStrategy

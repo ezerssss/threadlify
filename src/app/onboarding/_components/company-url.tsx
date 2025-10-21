@@ -1,36 +1,39 @@
 import { useState } from "react";
 
+import isUrl from "is-url";
+
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { cn, isValidUrl } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface PropsInterface {
   url: string;
   setUrl: (name: string) => void;
+  isValid: boolean;
+  setIsValid: (value: boolean) => void;
   handleBack: () => void;
   handleNext: () => void;
 }
 
 function InputCompanyUrl(props: PropsInterface) {
-  const { url, setUrl, handleBack, handleNext } = props;
+  const { url, setUrl, isValid, setIsValid, handleBack, handleNext } = props;
 
-  const [isValid, setIsValid] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
   function handleCheck() {
     try {
       setIsLoading(true);
 
-      isValidUrl(url, (valid) => {
-        setIsLoading(false);
-        setIsValid(valid);
+      const valid = isUrl(url);
 
-        if (valid) {
-          handleNext();
-        }
-      });
+      setIsValid(valid);
+
+      if (valid) {
+        handleNext();
+      }
     } catch (error) {
       console.error(error);
+    } finally {
       setIsLoading(false);
     }
   }
@@ -61,8 +64,7 @@ function InputCompanyUrl(props: PropsInterface) {
         />
         {!isValid && (
           <p className="text-red-700">
-            We couldn&apos;t reach this URL. Make sure it starts with http:// or https:// and that the site is
-            reachable.
+            Unable to verify this URL. Make sure it starts with http:// or https:// and that the site is reachable.
           </p>
         )}
       </div>
