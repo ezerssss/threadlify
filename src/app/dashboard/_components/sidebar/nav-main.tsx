@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { PlusCircleIcon, MailIcon, ChevronRight } from "lucide-react";
+import { ChevronRight, RadarIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   DropdownMenu,
@@ -143,7 +142,7 @@ const NavItemCollapsed = ({
 
 export function NavMain({ items }: NavMainProps) {
   const path = usePathname();
-  const { state, isMobile } = useSidebar();
+  const { state, isMobile, setOpen } = useSidebar();
 
   const isItemActive = (url: string, subItems?: NavMainItem["subItems"]) => {
     if (subItems?.length) {
@@ -156,6 +155,10 @@ export function NavMain({ items }: NavMainProps) {
     return subItems?.some((sub) => path.startsWith(sub.url)) ?? false;
   };
 
+  async function handleScanMarket() {
+    setOpen(true);
+  }
+
   return (
     <>
       <SidebarGroup>
@@ -163,20 +166,13 @@ export function NavMain({ items }: NavMainProps) {
           <SidebarMenu>
             <SidebarMenuItem className="flex items-center gap-2">
               <SidebarMenuButton
-                tooltip="Quick Create"
+                tooltip="Scan Market"
                 className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
+                onClick={handleScanMarket}
               >
-                <PlusCircleIcon />
-                <span>Quick Create</span>
+                <RadarIcon />
+                <span>Scan Market</span>
               </SidebarMenuButton>
-              <Button
-                size="icon"
-                className="h-9 w-9 shrink-0 group-data-[collapsible=icon]:opacity-0"
-                variant="outline"
-              >
-                <MailIcon />
-                <span className="sr-only">Inbox</span>
-              </Button>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroupContent>

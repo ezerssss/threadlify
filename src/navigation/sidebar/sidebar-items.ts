@@ -45,21 +45,6 @@ export const sidebarItems: NavGroup[] = [
         url: "/dashboard/finance",
         icon: Banknote,
       },
-      {
-        title: "Authentication",
-        url: "/auth",
-        icon: Fingerprint,
-        subItems: [
-          { title: "Login ", url: "/auth/login", newTab: true },
-          { title: "Register ", url: "/auth/register", newTab: true },
-        ],
-      },
-      {
-        title: "Analytics",
-        url: "/dashboard/coming-soon",
-        icon: Gauge,
-        comingSoon: true,
-      },
     ],
   },
 ];
