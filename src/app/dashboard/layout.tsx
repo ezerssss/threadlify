@@ -22,7 +22,7 @@ import {
 
 import { AccountSwitcher } from "./_components/sidebar/account-switcher";
 import { LayoutControls } from "./_components/sidebar/layout-controls";
-import { SearchDialog } from "./_components/sidebar/search-dialog";
+import { ProgressIndicator } from "./_components/sidebar/progress-indicator";
 import { ThemeSwitcher } from "./_components/sidebar/theme-switcher";
 
 export default async function Layout({ children }: Readonly<{ children: ReactNode }>) {
@@ -68,7 +68,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
               <div className="flex items-center gap-1 lg:gap-2">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
-                <SearchDialog />
+                <ProgressIndicator />
               </div>
               <div className="flex items-center gap-2">
                 <LayoutControls {...layoutPreferences} />

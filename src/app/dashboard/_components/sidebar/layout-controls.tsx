@@ -128,25 +128,6 @@ export function LayoutControls(props: LayoutControlsProps) {
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs font-medium">Navbar Style</Label>
-              <ToggleGroup
-                className="w-full"
-                size="sm"
-                variant="outline"
-                type="single"
-                value={navbarStyle}
-                onValueChange={(value) => handleValueChange("navbar_style", value)}
-              >
-                <ToggleGroupItem className="text-xs" value="sticky" aria-label="Toggle sticky">
-                  Sticky
-                </ToggleGroupItem>
-                <ToggleGroupItem className="text-xs" value="scroll" aria-label="Toggle scroll">
-                  Scroll
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
-
-            <div className="space-y-1">
               <Label className="text-xs font-medium">Sidebar Collapsible</Label>
               <ToggleGroup
                 className="w-full"

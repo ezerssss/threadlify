@@ -19,7 +19,7 @@ import InputCompanyUrl from "./_components/company-url";
 
 function OnboardingPage() {
   const router = useRouter();
-  const user = useUser();
+  const { user } = useUser();
   const [name, setName] = useState("");
 
   const [url, setUrl] = useState("");
