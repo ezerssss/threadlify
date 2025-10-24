@@ -151,6 +151,10 @@ These serve as the fallback; there is no separate default.css file. */
   }
 }
 
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

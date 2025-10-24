@@ -65,7 +65,7 @@ const recentPayments = [
 export function AccountOverview() {
   const { userData } = useUser();
 
-  if (!userData) {
+  if (!userData?.profile) {
     return null;
   }
 

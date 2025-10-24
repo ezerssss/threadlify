@@ -1,6 +1,6 @@
 "use client";
 
-import { CogIcon } from "lucide-react";
+import { SparklesIcon } from "lucide-react";
 
 import useUser from "@/hooks/use-user";
 
@@ -12,13 +12,13 @@ export function ProgressIndicator() {
   }
 
   return (
-    <div className="flex items-center gap-2 text-sm font-medium">
-      <CogIcon className="animate-spin-slow h-4 w-4 text-purple-500" />
-      <span className="animate-gradient bg-gradient-to-r from-purple-400 via-fuchsia-500 to-indigo-500 bg-clip-text text-transparent">
-        Running
-      </span>
+    <div className="flex animate-pulse items-center gap-2 text-sm font-medium">
+      <div className="animate-gradient from-primary to-primary flex items-center gap-2 bg-gradient-to-r via-red-500 bg-clip-text text-transparent">
+        <SparklesIcon className="text-primary h-4 w-4" />
+        <span>Running</span>
+      </div>
       <p> ·</p>
-      <span className="text-muted-foreground animate-light-pulse">{userData.processStatus}</span>
+      <span className="text-muted-foreground">{userData.processStatus}</span>
     </div>
   );
 }
