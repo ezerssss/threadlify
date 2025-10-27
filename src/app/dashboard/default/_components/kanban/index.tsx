@@ -15,8 +15,6 @@ const COLUMN_IDS = ["leads", "inProgress", "done"];
 function Kanban() {
   const { data, getAllPostsFromColumnId, handleOnDragEnd } = useKanbanData();
 
-  console.log(data.posts);
-
   return (
     <DragDropContext onDragEnd={handleOnDragEnd}>
       <div className="grid min-w-[800px] auto-rows-fr grid-cols-3 gap-4">

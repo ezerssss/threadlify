@@ -70,6 +70,8 @@ function useKanbanData() {
       },
     };
 
+    // Sorted by column rank
+    mockPosts.sort((a, b) => a.columnRank.localeCompare(b.columnRank));
     for (const post of mockPosts) {
       const { id, boardColumnId } = post;
       newPosts[id] = post;

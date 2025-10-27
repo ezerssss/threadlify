@@ -12,6 +12,8 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Separator } from "@/components/ui/separator";
 import useUser from "@/hooks/use-user";
 
+import { AccountOverViewSkeleton } from "./skeleton/account-overview-skeleton";
+
 function ChipSVG() {
   return (
     <svg enableBackground="new 0 0 132 92" viewBox="0 0 132 92" xmlns="http://www.w3.org/2000/svg" className="w-14">
@@ -66,7 +68,7 @@ export function AccountOverview() {
   const { userData } = useUser();
 
   if (!userData?.profile) {
-    return null;
+    return <AccountOverViewSkeleton />;
   }
 
   const { name, url, profile, strategy } = userData;
