@@ -22,7 +22,7 @@ export const mockPosts: PostType[] = [
     platform: "Reddit | PropertyManagement",
     postCreatedAt: "2025-03-15T12:47:20.000Z",
     createdAt: "2025-03-15T12:48:00.000Z",
-    boardColumnId: "research",
+    boardColumnId: "leads",
     columnRank: "a0",
     action: "engage",
     explanation:
@@ -53,7 +53,7 @@ export const mockPosts: PostType[] = [
     platform: "Reddit | Compliance",
     postCreatedAt: "2025-04-01T10:10:00.000Z",
     createdAt: "2025-04-01T10:11:00.000Z",
-    boardColumnId: "engagement",
+    boardColumnId: "leads",
     columnRank: "a1",
     action: "listen",
     explanation:
@@ -85,7 +85,7 @@ export const mockPosts: PostType[] = [
     platform: "Reddit | PropTech",
     postCreatedAt: "2025-05-10T08:20:45.000Z",
     createdAt: "2025-05-10T08:21:10.000Z",
-    boardColumnId: "insights",
+    boardColumnId: "inProgress",
     columnRank: "a2",
     action: "engage",
     explanation:
@@ -111,7 +111,7 @@ export const mockPosts: PostType[] = [
     platform: "Reddit | HousingPolicy",
     postCreatedAt: "2025-06-02T14:33:00.000Z",
     createdAt: "2025-06-02T14:33:45.000Z",
-    boardColumnId: "painpoints",
+    boardColumnId: "done",
     columnRank: "a3",
     action: "listen",
     explanation:
@@ -139,7 +139,7 @@ export const mockPosts: PostType[] = [
     platform: "Reddit | Compliance",
     postCreatedAt: "2025-06-14T16:00:00.000Z",
     createdAt: "2025-06-14T16:00:45.000Z",
-    boardColumnId: "followups",
+    boardColumnId: "inProgress",
     columnRank: "a4",
     action: "engage",
     explanation:
@@ -165,7 +165,7 @@ export const mockPosts: PostType[] = [
     platform: "Reddit | PropertyManagement",
     postCreatedAt: "2025-07-10T09:55:00.000Z",
     createdAt: "2025-07-10T09:55:45.000Z",
-    boardColumnId: "research",
+    boardColumnId: "leads",
     columnRank: "a5",
     action: "listen",
     explanation:
@@ -186,7 +186,7 @@ export const mockPosts: PostType[] = [
     platform: "Reddit | PropTech",
     postCreatedAt: "2025-07-22T15:44:00.000Z",
     createdAt: "2025-07-22T15:44:20.000Z",
-    boardColumnId: "comparison",
+    boardColumnId: "leads",
     columnRank: "a6",
     action: "engage",
     explanation:
@@ -212,7 +212,7 @@ export const mockPosts: PostType[] = [
     platform: "Reddit | AffordableHousing",
     postCreatedAt: "2025-08-05T12:12:00.000Z",
     createdAt: "2025-08-05T12:13:00.000Z",
-    boardColumnId: "automation",
+    boardColumnId: "done",
     columnRank: "a7",
     action: "listen",
     explanation:
@@ -233,7 +233,7 @@ export const mockPosts: PostType[] = [
     platform: "Reddit | PropTech",
     postCreatedAt: "2025-09-01T10:00:00.000Z",
     createdAt: "2025-09-01T10:01:00.000Z",
-    boardColumnId: "research",
+    boardColumnId: "inProgress",
     columnRank: "a8",
     action: "engage",
     explanation:
@@ -259,7 +259,7 @@ export const mockPosts: PostType[] = [
     platform: "Reddit | Compliance",
     postCreatedAt: "2025-10-01T11:15:00.000Z",
     createdAt: "2025-10-01T11:15:45.000Z",
-    boardColumnId: "updates",
+    boardColumnId: "leads",
     columnRank: "a9",
     action: "listen",
     explanation:

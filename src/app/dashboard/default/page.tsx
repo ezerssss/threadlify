@@ -6,15 +6,18 @@ import Kanban from "./_components/kanban";
 
 export default function Page() {
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
       <div className="flex flex-col gap-4 lg:col-span-1">
         <AccountOverview />
       </div>
 
       <div className="flex flex-col gap-4 lg:col-span-2">
-        <div className="flex-1 overflow-x-auto">
+        <div className="flex-1 overflow-auto">
           <Kanban />
         </div>
+        {/* <div className="flex-1 overflow-x-auto">
+          <Kanban />
+        </div> */}
         {/* <div className="flex-1">
           <FinancialOverview />
         </div>
