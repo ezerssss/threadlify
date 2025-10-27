@@ -10,7 +10,7 @@ import { PostType } from "@/types/posts";
 import KanbanCard from "./kanban-card";
 import useKanbanData from "./use-kanban-data";
 
-const COLUMN_IDS = ["leads", "inProgress", "done"];
+const COLUMN_IDS = ["new", "inProgress", "done"];
 
 function Kanban() {
   const { data, getAllPostsFromColumnId, handleOnDragEnd } = useKanbanData();

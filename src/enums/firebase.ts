@@ -1,3 +1,4 @@
 export enum FIREBASE_COLLECTION_ENUMS {
   USERS_COLLECTION = "users",
+  POSTS_COLLECTION = "posts",
 }

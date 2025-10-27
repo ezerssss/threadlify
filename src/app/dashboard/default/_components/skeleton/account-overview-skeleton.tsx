@@ -16,7 +16,7 @@ export function AccountOverViewSkeleton() {
       <CardContent>
         <div className="space-y-4">
           {/* Profile Summary */}
-          <div className="bg-primary/30 relative w-full space-y-3 overflow-hidden rounded-xl p-4 perspective-distant">
+          <div className="bg-primary/20 relative w-full space-y-3 overflow-hidden rounded-xl p-4 perspective-distant">
             <div className="space-y-2">
               <Skeleton className="h-5 w-32" />
               <Skeleton className="h-18 w-full" />

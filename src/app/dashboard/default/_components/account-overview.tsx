@@ -153,8 +153,8 @@ export function AccountOverview() {
               ))}
             </div>
 
-            <Button className="w-full" size="sm" variant="outline">
-              View All Payments
+            <Button disabled className="w-full" size="sm" variant="outline">
+              View All Scans
             </Button>
           </div>
         </div>
