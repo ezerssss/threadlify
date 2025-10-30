@@ -19,7 +19,7 @@ import InputCompanyUrl from "./_components/company-url";
 
 function OnboardingPage() {
   const router = useRouter();
-  const { user } = useUser();
+  const { user, idToken } = useUser();
   const [name, setName] = useState("");
 
   const [url, setUrl] = useState("");
@@ -54,11 +54,9 @@ function OnboardingPage() {
     try {
       setIsLoading(true);
 
-      if (!user) {
+      if (!user || !idToken) {
         throw new Error("Your are unauthorized to do this action.");
       }
-
-      const idToken = await user.getIdToken();
 
       const res = await ky.post(ONBOARDING_URL, {
         json: { name, url, strategy },

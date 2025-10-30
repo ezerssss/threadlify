@@ -1,0 +1,1 @@
+export const REFRESH_JWT_TOKEN_INTERVAL_IN_MS = 60 * 60 * 1000;

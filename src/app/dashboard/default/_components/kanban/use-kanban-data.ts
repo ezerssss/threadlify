@@ -46,7 +46,7 @@ const defaultData: KanbanDataInterface = {
   },
 };
 function useKanbanData() {
-  const { user } = useUser();
+  const { user, idToken } = useUser();
   const [data, setData] = useState<KanbanDataInterface>({ ...defaultData });
 
   function getAllPostsFromColumnId(columnId: string): PostType[] {
@@ -75,12 +75,10 @@ function useKanbanData() {
       const postQuery = query(postsCollectionRef, orderBy("columnRank"));
       const snapshot = await getDocs(postQuery);
 
-      const sortedPosts = snapshot.docs
-        .map((post) => {
-          const data = post.data() as PostType;
-          return data;
-        })
-        .toSorted((a, b) => a.columnRank.localeCompare(b.columnRank));
+      const sortedPosts = snapshot.docs.map((post) => {
+        const data = post.data() as PostType;
+        return data;
+      });
 
       const newPosts: Record<string, PostType> = {};
       const newColumnsData: Record<string, KanbanColumnInterface> = {
@@ -134,12 +132,10 @@ function useKanbanData() {
       const postQuery = query(postsCollectionRef, where("boardColumnId", "==", "new"), orderBy("columnRank"));
 
       unsub = onSnapshot(postQuery, (snapshot) => {
-        const sortedPosts = snapshot.docs
-          .map((post) => {
-            const data = post.data() as PostType;
-            return data;
-          })
-          .toSorted((a, b) => a.columnRank.localeCompare(b.columnRank));
+        const sortedPosts = snapshot.docs.map((post) => {
+          const data = post.data() as PostType;
+          return data;
+        });
 
         const newPosts: Record<string, PostType> = {};
         const newColumnsData: Record<string, KanbanColumnInterface> = {
@@ -172,7 +168,7 @@ function useKanbanData() {
   async function handleMoveOnSameColumn(result: DropResult) {
     const { source, destination, draggableId } = result;
 
-    if (!user) {
+    if (!idToken) {
       return;
     }
 
@@ -214,8 +210,6 @@ function useKanbanData() {
         },
       }));
 
-      const idToken = await user.getIdToken();
-
       const kanbanChangeRequest: KanbanChangeRequestType = {
         id: post.id,
         boardColumnId: post.boardColumnId,
@@ -236,7 +230,7 @@ function useKanbanData() {
   async function handleMoveOnDifferentColumn(result: DropResult) {
     const { source, destination, draggableId } = result;
 
-    if (!user) {
+    if (!idToken) {
       return;
     }
 
@@ -281,8 +275,6 @@ function useKanbanData() {
           },
         },
       }));
-
-      const idToken = await user.getIdToken();
 
       const kanbanChangeRequest: KanbanChangeRequestType = {
         id: post.id,

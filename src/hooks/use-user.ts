@@ -4,11 +4,13 @@ import { User, onAuthStateChanged } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
 
 import { USERS_COLLECTION_REF } from "@/constants/firebase";
+import { REFRESH_JWT_TOKEN_INTERVAL_IN_MS } from "@/constants/time";
 import { auth } from "@/firebase";
 import { UserDataType } from "@/types/user";
 
 export default function useUser() {
   const [user, setUser] = useState<User | null>();
+  const [idToken, setIdToken] = useState<string | null>();
   const [userData, setUserData] = useState<UserDataType | null>();
 
   useEffect(() => {
@@ -32,5 +34,20 @@ export default function useUser() {
     return () => unsubscribe();
   }, [user]);
 
-  return { user, userData };
+  useEffect(() => {
+    async function getIdToken() {
+      if (!user) {
+        return;
+      }
+
+      const fetchedIdToken = await user.getIdToken();
+      setIdToken(fetchedIdToken);
+    }
+
+    getIdToken();
+
+    setInterval(getIdToken, REFRESH_JWT_TOKEN_INTERVAL_IN_MS);
+  }, [user]);
+
+  return { user, userData, idToken };
 }

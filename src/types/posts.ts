@@ -26,6 +26,7 @@ export const PostSchema = z.object({
   boardColumnId: z.string().min(1),
   columnRank: z.string().min(1),
   action: z.string().min(1),
+  signalType: z.string().min(1),
   explanation: z.string().min(1),
   engagementTarget: z.string().min(1),
   priority: z.string().min(1),

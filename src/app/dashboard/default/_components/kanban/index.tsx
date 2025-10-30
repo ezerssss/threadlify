@@ -5,6 +5,7 @@ import { memo } from "react";
 import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd";
 
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { PostType } from "@/types/posts";
 
 import KanbanCard from "./kanban-card";
@@ -29,7 +30,7 @@ function Kanban() {
                   </div>
                 </div>
                 <div ref={provided.innerRef} {...provided.droppableProps} className="min-h-[200px] flex-1 space-y-2.5">
-                  <MemoizedInnerList posts={getAllPostsFromColumnId(columnId)} />
+                  <MemoizedInnerList posts={getAllPostsFromColumnId(columnId)} columnId={columnId} />
                   {provided.placeholder}
                 </div>
               </div>
@@ -43,17 +44,23 @@ function Kanban() {
 
 interface InnerListPropInterface {
   posts: PostType[];
+  columnId: string;
 }
 
 function InnerList(props: InnerListPropInterface) {
-  const { posts } = props;
+  const { posts, columnId } = props;
 
   return (
     <>
       {posts.map((post, index) => (
         <Draggable key={post.id} draggableId={post.id} index={index}>
           {(provided) => (
-            <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+            <div
+              ref={provided.innerRef}
+              {...provided.draggableProps}
+              {...provided.dragHandleProps}
+              className={cn(columnId === "done" && "opacity-50")}
+            >
               <KanbanCard post={post} />
             </div>
           )}
