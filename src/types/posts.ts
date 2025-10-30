@@ -5,6 +5,8 @@ export const CommentSchema = z.object({
   body: z.string().min(1),
 });
 
+export type CommentType = z.infer<typeof CommentSchema>;
+
 export const RecommendedReplySchema = z.object({
   reply: z.string().min(1),
   replyTarget: z.string().min(1),

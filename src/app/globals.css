@@ -151,6 +151,13 @@ These serve as the fallback; there is no separate default.css file. */
   }
 }
 
+/* For Firefox and other modern browsers */
+body {
+  /* Or the specific element with a scrollbar */
+  scrollbar-width: thin; /* or auto, none */
+  scrollbar-color: var(--color-primary) transparent; /* Sets thumb and track to transparent */
+}
+
 .scrollbar-thin {
   scrollbar-width: thin;
 }
