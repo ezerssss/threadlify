@@ -76,3 +76,43 @@ export function formatISODate(isoString: string): string {
     year: "numeric",
   });
 }
+
+export function formatRelativeTime(input: string | Date): string {
+  const date = typeof input === "string" ? new Date(input) : input;
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (seconds < 60) return `${seconds}s ago`;
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export function formatDuration(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (hours > 0) {
+    const remMinutes = minutes % 60;
+    return `${hours}h${remMinutes > 0 ? ` ${remMinutes}m` : ""}`;
+  }
+
+  if (minutes > 0) {
+    const remSeconds = seconds % 60;
+    return `${minutes}m${remSeconds > 0 ? ` ${remSeconds}s` : ""}`;
+  }
+
+  return `${seconds}s`;
+}

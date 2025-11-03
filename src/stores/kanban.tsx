@@ -1,7 +1,7 @@
 import { boolean } from "zod";
 import { create } from "zustand";
 
-import { PostType } from "@/types/posts";
+import { PostType } from "@/types/post";
 
 export type KanbanState = {
   activePost: PostType | null;

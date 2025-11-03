@@ -1,5 +1,5 @@
 import { AccountOverview } from "./components/account-overview";
-import { TableCards } from "./components/leads-table/table-cards";
+import { ScanResultsTable } from "./components/scans-table/table-cards";
 
 function Page() {
   return (
@@ -8,7 +8,7 @@ function Page() {
         <AccountOverview />
       </div>
       <div className="flex-1">
-        <TableCards />
+        <ScanResultsTable />
       </div>
     </div>
   );

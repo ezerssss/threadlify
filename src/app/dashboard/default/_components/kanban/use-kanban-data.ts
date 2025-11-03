@@ -12,7 +12,7 @@ import { FIREBASE_COLLECTION_ENUMS } from "@/enums/firebase";
 import useUser from "@/hooks/use-user";
 import { toastError } from "@/lib/utils";
 import { KanbanChangeRequestType } from "@/types/kanban";
-import { PostType } from "@/types/posts";
+import { PostType } from "@/types/post";
 
 interface KanbanColumnInterface {
   id: string;

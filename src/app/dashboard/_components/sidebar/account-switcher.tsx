@@ -54,7 +54,7 @@ export function AccountSwitcher() {
             </div>
           </div>
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
+        {/* <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem>
             <BadgeCheck />
@@ -64,7 +64,7 @@ export function AccountSwitcher() {
             <CreditCard />
             Billing
           </DropdownMenuItem>
-        </DropdownMenuGroup>
+        </DropdownMenuGroup> */}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
           <LogOut />

@@ -7,7 +7,7 @@ import { SimpleIcon } from "@/components/simple-icon";
 import { Badge } from "@/components/ui/badge";
 import { formatISODate } from "@/lib/utils";
 import { useKanbanStore } from "@/stores/kanban";
-import { PostType } from "@/types/posts";
+import { PostType } from "@/types/post";
 
 interface PropsInteface {
   post: PostType;

@@ -1,23 +1,54 @@
 "use client";
 
-import { Download } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
 
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
-import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardAction } from "@/components/ui/card";
+import { USERS_COLLECTION_REF } from "@/constants/firebase";
+import { FIREBASE_COLLECTION_ENUMS } from "@/enums/firebase";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
+import useUser from "@/hooks/use-user";
+import { ScanLogType } from "@/types/log";
 
-import { recentLeadsColumns } from "./columns.crm";
+import { scanResultsColumns } from "./columns";
 import { recentLeadsData } from "./crm.config";
 
-export function TableCards() {
+export function ScanResultsTable() {
+  const { user } = useUser();
+  const [tableData, setTableData] = useState<ScanLogType[]>([]);
+
   const table = useDataTableInstance({
-    data: recentLeadsData,
-    columns: recentLeadsColumns,
+    data: tableData,
+    columns: scanResultsColumns,
     getRowId: (row) => row.id.toString(),
   });
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
+    const userLogsCollection = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.LOGS_COLLECTION);
+    const scanLogsQuery = query(userLogsCollection, where("logType", "==", "scan"));
+
+    const unsubscribe = onSnapshot(scanLogsQuery, (snapshot) => {
+      const fetchedData: ScanLogType[] = [];
+
+      for (const doc of snapshot.docs) {
+        const scanLog = doc.data() as ScanLogType;
+        fetchedData.push(scanLog);
+      }
+
+      setTableData(fetchedData);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   return (
     <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:shadow-xs">
@@ -33,7 +64,7 @@ export function TableCards() {
         </CardHeader>
         <CardContent className="flex size-full flex-col gap-4">
           <div className="overflow-hidden rounded-md border">
-            <DataTable table={table} columns={recentLeadsColumns} />
+            <DataTable table={table} columns={scanResultsColumns} />
           </div>
           <DataTablePagination table={table} />
         </CardContent>

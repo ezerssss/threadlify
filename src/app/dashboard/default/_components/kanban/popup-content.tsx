@@ -15,7 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import useUser from "@/hooks/use-user";
 import { cn, formatISODate, toastError } from "@/lib/utils";
 import { useKanbanStore } from "@/stores/kanban";
-import { CommentType, PostType } from "@/types/posts";
+import { CommentType, PostType } from "@/types/post";
 
 // eslint-disable-next-line complexity
 function PopUpContent() {

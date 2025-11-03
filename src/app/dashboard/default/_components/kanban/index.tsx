@@ -6,7 +6,7 @@ import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { PostType } from "@/types/posts";
+import { PostType } from "@/types/post";
 
 import KanbanCard from "./kanban-card";
 import PopUpContent from "./popup-content";
