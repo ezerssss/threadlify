@@ -5,3 +5,5 @@ export const REGISTER_URL = `${BACKEND_BASE_URL}/auth/register`;
 export const ONBOARDING_URL = `${BACKEND_BASE_URL}/onboarding/`;
 
 export const KANBAN_CHANGE_URL = `${BACKEND_BASE_URL}/kanban/change`;
+
+export const SCAN_REQUEST_URL = `${BACKEND_BASE_URL}/scan/`;

@@ -1,4 +1,4 @@
-import { Kanban, Fingerprint, ChartBar, Banknote, Gauge, type LucideIcon } from "lucide-react";
+import { Kanban, Fingerprint, ChartBar, Banknote, Gauge, type LucideIcon, User } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -36,15 +36,21 @@ export const sidebarItems: NavGroup[] = [
         icon: Kanban,
       },
       {
-        title: "CRM",
-        url: "/dashboard/crm",
-        icon: ChartBar,
+        title: "Profile",
+        url: "/dashboard/profile",
+        icon: User,
       },
       {
-        title: "Finance",
-        url: "/dashboard/finance",
-        icon: Banknote,
+        title: "Stats",
+        url: "/dashboard/crm",
+        icon: ChartBar,
+        comingSoon: true,
       },
+      // {
+      //   title: "Finance",
+      //   url: "/dashboard/finance",
+      //   icon: Banknote,
+      // },
     ],
   },
 ];

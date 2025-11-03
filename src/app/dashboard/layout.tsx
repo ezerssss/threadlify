@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 
 import { AppSidebar } from "@/app/dashboard/_components/sidebar/app-sidebar";
 import ProtectedRouteWrapper from "@/components/protected-route-wrapper";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ import {
 import { AccountSwitcher } from "./_components/sidebar/account-switcher";
 import { LayoutControls } from "./_components/sidebar/layout-controls";
 import { ProgressIndicator } from "./_components/sidebar/progress-indicator";
+import ScanActionButtons from "./_components/sidebar/scan-action-buttons";
 import { ThemeSwitcher } from "./_components/sidebar/theme-switcher";
 
 export default async function Layout({ children }: Readonly<{ children: ReactNode }>) {
@@ -70,9 +72,11 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
                 <ProgressIndicator />
               </div>
               <div className="flex items-center gap-2">
-                <LayoutControls {...layoutPreferences} />
+                <ScanActionButtons />
+
+                {/* <LayoutControls {...layoutPreferences} />
                 <ThemeSwitcher />
-                <AccountSwitcher />
+                <AccountSwitcher /> */}
               </div>
             </div>
           </header>
