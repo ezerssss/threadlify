@@ -39,8 +39,7 @@ export function RegisterForm() {
 
     try {
       setIsLoading(true);
-      const data: GenericAPIResponse = await ky.post(REGISTER_URL, { json: formValues }).json();
-
+      await ky.post(REGISTER_URL, { json: formValues }).json();
       await signInWithEmailAndPassword(auth, email, password);
 
       router.push("/onboarding");

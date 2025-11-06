@@ -1,8 +1,7 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-
-import { Command, SpoolIcon } from "lucide-react";
 
 import {
   Sidebar,
@@ -13,12 +12,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { APP_CONFIG } from "@/config/app-config";
 import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
 
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
-import SidebarCopyRight from "./sidebar-copyright";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -26,10 +23,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
+            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-0">
               <Link href="/dashboard/default">
-                <SpoolIcon />
-                <span className="text-base font-semibold">{APP_CONFIG.name}</span>
+                <Image src="/images/logo-orange.png" alt="logo" height={40} width={40} />
+                <span className="text-primary text-base font-semibold">threadlify</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -39,7 +36,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={sidebarItems} />
       </SidebarContent>
       <SidebarFooter>
-        {/* <SidebarCopyRight /> */}
         <NavUser />
       </SidebarFooter>
     </Sidebar>

@@ -40,12 +40,12 @@ export const sidebarItems: NavGroup[] = [
         url: "/dashboard/profile",
         icon: User,
       },
-      {
-        title: "Stats",
-        url: "/dashboard/crm",
-        icon: ChartBar,
-        comingSoon: true,
-      },
+      // {
+      //   title: "Stats",
+      //   url: "/dashboard/crm",
+      //   icon: ChartBar,
+      //   comingSoon: true,
+      // },
       // {
       //   title: "Finance",
       //   url: "/dashboard/finance",

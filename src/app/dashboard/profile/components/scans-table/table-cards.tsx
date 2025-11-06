@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
+import { collection, doc, onSnapshot, orderBy, query, where } from "firebase/firestore";
 
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
@@ -34,7 +34,7 @@ export function ScanResultsTable() {
 
     const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
     const userLogsCollection = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.LOGS_COLLECTION);
-    const scanLogsQuery = query(userLogsCollection, where("logType", "==", "scan"));
+    const scanLogsQuery = query(userLogsCollection, where("logType", "==", "scan"), orderBy("date", "desc"));
 
     const unsubscribe = onSnapshot(scanLogsQuery, (snapshot) => {
       const fetchedData: ScanLogType[] = [];

@@ -1,9 +1,13 @@
 "use client";
 
+import { useState } from "react";
+
 import Link from "next/link";
 
+import ky from "ky";
 import { EditIcon, InfoIcon, LinkIcon } from "lucide-react";
 import { siFacebook, siReddit, siX } from "simple-icons";
+import { toast } from "sonner";
 import { parse } from "tldts";
 
 import { SimpleIcon } from "@/components/simple-icon";
@@ -11,8 +15,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { EDIT_PROFILE_URL } from "@/constants/url";
 import useUser from "@/hooks/use-user";
+import { toastError } from "@/lib/utils";
+import { EditUserProfileType } from "@/types/user";
 
+import EditProfileDialog from "./edit-profile-dialog";
 import { AccountOverViewSkeleton } from "./skeleton/account-overview-skeleton";
 
 const recentPayments = [
@@ -51,17 +59,45 @@ const recentPayments = [
 ];
 
 export function AccountOverview() {
-  const { userData } = useUser();
+  const { userData, idToken } = useUser();
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!userData?.profile) {
     return <AccountOverViewSkeleton />;
   }
 
   const { name, url, profile, strategy, subscription, totalScans } = userData;
+  const { description, keywords } = profile;
   const { monthlyQuota, usedThisPeriod } = subscription;
   const remainingScans = monthlyQuota - usedThisPeriod;
 
   const parsedUrl = parse(url).domain;
+
+  async function handleSaveEdit(newUserData: EditUserProfileType) {
+    if (isLoading) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      if (!idToken) {
+        throw new Error("Your are unauthorized to do this action.");
+      }
+
+      await ky.post(EDIT_PROFILE_URL, {
+        json: newUserData,
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      toast.success("Successfully updated profile.");
+    } catch (error) {
+      toastError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <Card className="overflow-hidden shadow-xs">
@@ -71,9 +107,13 @@ export function AccountOverview() {
           Your auto-generated profile, growth strategy, and other relevant information in one view.
         </CardDescription>
         <CardAction className="flex items-center gap-2">
-          <Button size="icon" variant="outline">
-            <EditIcon className="size-4" />
-          </Button>
+          <EditProfileDialog
+            isLoading={isLoading}
+            profile={{ name, description }}
+            keywords={keywords}
+            strategy={strategy}
+            onSave={handleSaveEdit}
+          />
         </CardAction>
       </CardHeader>
       <CardContent>

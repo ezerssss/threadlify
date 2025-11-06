@@ -16,12 +16,12 @@ const COLUMN_IDS = ["new", "inProgress", "done"];
 const COLUMN_COLOR: Record<string, string> = { new: "bg-green-500", inProgress: "bg-yellow-500", done: "bg-gray-400" };
 
 function Kanban() {
-  const { data, getAllPostsFromColumnId, handleOnDragEnd } = useKanbanData();
+  const { data, getAllPostsFromColumnId, handleOnDragEnd, isLoading } = useKanbanData();
 
   return (
     <>
       <DragDropContext onDragEnd={handleOnDragEnd}>
-        <div className="grid h-full min-w-[800px] auto-rows-fr grid-cols-3 gap-4">
+        <div className={cn("grid h-full min-w-[800px] auto-rows-fr grid-cols-3 gap-4", isLoading && "animate-pulse")}>
           {COLUMN_IDS.map((columnId) => (
             <Droppable key={columnId} droppableId={columnId}>
               {(provided) => (

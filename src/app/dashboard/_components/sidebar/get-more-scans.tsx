@@ -140,23 +140,16 @@ function RequestEmail(props: RequestEmailProps) {
   const { selectedPlanData, supportEmail } = props;
   const [showFallback, setShowFallback] = useState(false);
 
-  const subject = encodeURIComponent(`Upgrade Request: ${selectedPlanData.name} Plan`);
+  const subject = encodeURIComponent(`Plan Upgrade Request – ${selectedPlanData.name}`);
   const body = encodeURIComponent(
-    `Hello Threadlify Team,
+    `Upgrade Request Details
+-------------------------
+Plan: ${selectedPlanData.name}
 
+Message:
+Please proceed with the upgrade process at your earliest convenience.
 
-I would like to request an upgrade to the ${selectedPlanData.name} plan.
-
-
-Account email: <ENTER YOUR REGISTERED EMAIL>
-Selected plan: ${selectedPlanData.name}
-
-
-Please let me know the next steps to proceed with the upgrade. Thank you.
-
-
-Best regards,
-<YOUR NAME>`,
+Thank you`,
   );
 
   const mailtoLink = `mailto:${supportEmail}?subject=${subject}&body=${body}`;

@@ -73,6 +73,7 @@ const defaultData: KanbanDataInterface = {
 
 function useKanbanData() {
   const { user, idToken } = useUser();
+  const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<KanbanDataInterface>({ ...defaultData });
   const [pagination, setPagination] = useState<PaginationState>({
     new: { lastDoc: null, hasMore: true, loading: false },
@@ -93,57 +94,65 @@ function useKanbanData() {
     }
 
     (async () => {
-      const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
-      const userDoc = await getDoc(userDocRef);
+      try {
+        setIsLoading(true);
 
-      if (!userDoc.exists()) {
-        return;
-      }
+        const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
+        const userDoc = await getDoc(userDocRef);
 
-      const postsCollectionRef = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.POSTS_COLLECTION);
+        if (!userDoc.exists()) {
+          return;
+        }
 
-      // Fetch initial data for all columns
-      const newPosts: Record<string, PostType> = {};
-      const newColumnsData: Record<string, KanbanColumnInterface> = {
-        new: { id: "new", title: "New", postIds: [] },
-        inProgress: { id: "inProgress", title: "In Progress", postIds: [] },
-        done: { id: "done", title: "Done", postIds: [] },
-      };
-      const newPagination: PaginationState = {
-        new: { lastDoc: null, hasMore: true, loading: false },
-        inProgress: { lastDoc: null, hasMore: true, loading: false },
-        done: { lastDoc: null, hasMore: true, loading: false },
-      };
+        const postsCollectionRef = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.POSTS_COLLECTION);
 
-      // Fetch first page for each column
-      for (const columnId of ["new", "inProgress", "done"]) {
-        const postQuery = query(
-          postsCollectionRef,
-          where("boardColumnId", "==", columnId),
-          orderBy("columnRank"),
-          limit(ITEMS_PER_PAGE),
-        );
-
-        const snapshot = await getDocs(postQuery);
-
-        snapshot.docs.forEach((doc) => {
-          const post = doc.data() as PostType;
-          newPosts[post.id] = post;
-          newColumnsData[columnId].postIds.push(post.id);
-        });
-
-        newPagination[columnId] = {
-          lastDoc: snapshot.docs[snapshot.docs.length - 1] || null,
-          hasMore: snapshot.docs.length === ITEMS_PER_PAGE,
-          loading: false,
+        // Fetch initial data for all columns
+        const newPosts: Record<string, PostType> = {};
+        const newColumnsData: Record<string, KanbanColumnInterface> = {
+          new: { id: "new", title: "New", postIds: [] },
+          inProgress: { id: "inProgress", title: "In Progress", postIds: [] },
+          done: { id: "done", title: "Done", postIds: [] },
         };
-      }
+        const newPagination: PaginationState = {
+          new: { lastDoc: null, hasMore: true, loading: false },
+          inProgress: { lastDoc: null, hasMore: true, loading: false },
+          done: { lastDoc: null, hasMore: true, loading: false },
+        };
 
-      setData({
-        posts: newPosts,
-        columns: newColumnsData,
-      });
-      setPagination(newPagination);
+        // Fetch first page for each column
+        for (const columnId of ["new", "inProgress", "done"]) {
+          const postQuery = query(
+            postsCollectionRef,
+            where("boardColumnId", "==", columnId),
+            orderBy("columnRank"),
+            // limit(ITEMS_PER_PAGE),
+          );
+
+          const snapshot = await getDocs(postQuery);
+
+          snapshot.docs.forEach((doc) => {
+            const post = doc.data() as PostType;
+            newPosts[post.id] = post;
+            newColumnsData[columnId].postIds.push(post.id);
+          });
+
+          newPagination[columnId] = {
+            lastDoc: snapshot.docs[snapshot.docs.length - 1] || null,
+            hasMore: snapshot.docs.length === ITEMS_PER_PAGE,
+            loading: false,
+          };
+        }
+
+        setData({
+          posts: newPosts,
+          columns: newColumnsData,
+        });
+        setPagination(newPagination);
+      } catch (error) {
+        toastError(error);
+      } finally {
+        setIsLoading(false);
+      }
     })();
   }, [user]);
 
@@ -172,7 +181,7 @@ function useKanbanData() {
         where("boardColumnId", "==", "new"),
         where("createdAt", ">", date.toISOString()),
         orderBy("columnRank"),
-        limit(ITEMS_PER_PAGE),
+        // limit(ITEMS_PER_PAGE),
       );
 
       unsub = onSnapshot(postQuery, (snapshot) => {
@@ -427,6 +436,7 @@ function useKanbanData() {
     handleOnDragEnd,
     loadMoreForColumn,
     pagination,
+    isLoading,
   };
 }
 
