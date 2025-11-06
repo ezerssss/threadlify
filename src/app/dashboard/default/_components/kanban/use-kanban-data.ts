@@ -221,7 +221,7 @@ function useKanbanData() {
       });
     })();
 
-    return () => unsub?.();
+    return () => unsub();
   }, [user]);
 
   // Load more items for a specific column

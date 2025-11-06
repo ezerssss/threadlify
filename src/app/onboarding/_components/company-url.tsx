@@ -11,12 +11,11 @@ interface PropsInterface {
   setUrl: (name: string) => void;
   isValid: boolean;
   setIsValid: (value: boolean) => void;
-  handleBack: () => void;
   handleNext: () => void;
 }
 
 function InputCompanyUrl(props: PropsInterface) {
-  const { url, setUrl, isValid, setIsValid, handleBack, handleNext } = props;
+  const { url, setUrl, isValid, setIsValid, handleNext } = props;
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -40,7 +39,7 @@ function InputCompanyUrl(props: PropsInterface) {
 
   return (
     <>
-      <p className="text-muted/70 text-sm">Step 2 of 3</p>
+      <p className="text-muted/70 text-sm">Step 1 of 2</p>
 
       <h1 className="max-w-[750px] text-3xl font-bold sm:text-4xl lg:text-6xl">What&apos;s your company website?</h1>
 
@@ -75,9 +74,6 @@ function InputCompanyUrl(props: PropsInterface) {
           onClick={handleCheck}
         >
           {isLoading ? <Spinner /> : "Next"}
-        </Button>
-        <Button className="bg-primary text-background border px-12 py-5 font-bold" onClick={handleBack}>
-          Back
         </Button>
       </div>
     </>
