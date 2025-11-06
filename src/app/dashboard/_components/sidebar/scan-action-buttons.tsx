@@ -10,6 +10,8 @@ import { SCAN_REQUEST_URL } from "@/constants/url";
 import useUser from "@/hooks/use-user";
 import { cn, toastError } from "@/lib/utils";
 
+import GetMoreScans from "./get-more-scans";
+
 function ScanActionButtons() {
   const { userData, idToken } = useUser();
   const [isDisabled, setIsDisabled] = useState(true);
@@ -56,7 +58,7 @@ function ScanActionButtons() {
   return (
     <>
       <p className="text-sm">Scans left: {remainingScans}</p>
-      <Button variant="outline">Get more scans</Button>
+      <GetMoreScans />
       <Button
         disabled={isDisabled || remainingScans < 1}
         onClick={handleScanMarket}

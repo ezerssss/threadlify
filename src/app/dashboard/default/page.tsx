@@ -6,9 +6,5 @@ import { FinancialOverview } from "./_components/financial-overview";
 import Kanban from "./_components/kanban";
 
 export default function Page() {
-  return (
-    <div className="overflow-auto">
-      <Kanban />
-    </div>
-  );
+  return <Kanban />;
 }

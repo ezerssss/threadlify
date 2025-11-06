@@ -1,8 +1,23 @@
-import { useState, useEffect } from "react";
+/* eslint-disable max-lines */
+import { useState, useEffect, useCallback } from "react";
 
 import { DropResult } from "@hello-pangea/dnd";
 import { arrayMoveImmutable } from "array-move";
-import { collection, doc, getDoc, getDocs, onSnapshot, orderBy, query, Unsubscribe, where } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  orderBy,
+  query,
+  Unsubscribe,
+  where,
+  limit,
+  startAfter,
+  QueryDocumentSnapshot,
+  DocumentData,
+} from "firebase/firestore";
 import { generateKeyBetween } from "fractional-indexing";
 import ky from "ky";
 
@@ -25,6 +40,16 @@ interface KanbanDataInterface {
   columns: Record<string, KanbanColumnInterface>;
 }
 
+interface PaginationState {
+  [columnId: string]: {
+    lastDoc: QueryDocumentSnapshot<DocumentData> | null;
+    hasMore: boolean;
+    loading: boolean;
+  };
+}
+
+const ITEMS_PER_PAGE = 100;
+
 const defaultData: KanbanDataInterface = {
   posts: {},
   columns: {
@@ -45,25 +70,29 @@ const defaultData: KanbanDataInterface = {
     },
   },
 };
+
 function useKanbanData() {
   const { user, idToken } = useUser();
   const [data, setData] = useState<KanbanDataInterface>({ ...defaultData });
+  const [pagination, setPagination] = useState<PaginationState>({
+    new: { lastDoc: null, hasMore: true, loading: false },
+    inProgress: { lastDoc: null, hasMore: true, loading: false },
+    done: { lastDoc: null, hasMore: true, loading: false },
+  });
 
   function getAllPostsFromColumnId(columnId: string): PostType[] {
     const postIds = data.columns[columnId].postIds;
     const posts: PostType[] = postIds.map((id) => data.posts[id]);
-
     return posts;
   }
 
-  // Get all data
+  // Initial load - fetch first page for each column
   useEffect(() => {
     if (!user) {
       return;
     }
 
     (async () => {
-      // Fetch data here already sorted by columnRank
       const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
       const userDoc = await getDoc(userDocRef);
 
@@ -72,47 +101,53 @@ function useKanbanData() {
       }
 
       const postsCollectionRef = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.POSTS_COLLECTION);
-      const postQuery = query(postsCollectionRef, orderBy("columnRank"));
-      const snapshot = await getDocs(postQuery);
 
-      const sortedPosts = snapshot.docs.map((post) => {
-        const data = post.data() as PostType;
-        return data;
-      });
-
+      // Fetch initial data for all columns
       const newPosts: Record<string, PostType> = {};
       const newColumnsData: Record<string, KanbanColumnInterface> = {
-        new: {
-          id: "new",
-          title: "New",
-          postIds: [],
-        },
-        inProgress: {
-          id: "inProgress",
-          title: "In Progress",
-          postIds: [],
-        },
-        done: {
-          id: "done",
-          title: "Done",
-          postIds: [],
-        },
+        new: { id: "new", title: "New", postIds: [] },
+        inProgress: { id: "inProgress", title: "In Progress", postIds: [] },
+        done: { id: "done", title: "Done", postIds: [] },
+      };
+      const newPagination: PaginationState = {
+        new: { lastDoc: null, hasMore: true, loading: false },
+        inProgress: { lastDoc: null, hasMore: true, loading: false },
+        done: { lastDoc: null, hasMore: true, loading: false },
       };
 
-      for (const post of sortedPosts) {
-        const { id, boardColumnId } = post;
-        newPosts[id] = post;
-        newColumnsData[boardColumnId].postIds.push(id);
+      // Fetch first page for each column
+      for (const columnId of ["new", "inProgress", "done"]) {
+        const postQuery = query(
+          postsCollectionRef,
+          where("boardColumnId", "==", columnId),
+          orderBy("columnRank"),
+          limit(ITEMS_PER_PAGE),
+        );
+
+        const snapshot = await getDocs(postQuery);
+
+        snapshot.docs.forEach((doc) => {
+          const post = doc.data() as PostType;
+          newPosts[post.id] = post;
+          newColumnsData[columnId].postIds.push(post.id);
+        });
+
+        newPagination[columnId] = {
+          lastDoc: snapshot.docs[snapshot.docs.length - 1] || null,
+          hasMore: snapshot.docs.length === ITEMS_PER_PAGE,
+          loading: false,
+        };
       }
 
       setData({
         posts: newPosts,
         columns: newColumnsData,
       });
+      setPagination(newPagination);
     })();
   }, [user]);
 
-  // Listener for new posts
+  // Listener for new posts in "new" column only (real-time updates)
   useEffect(() => {
     if (!user) {
       return;
@@ -120,7 +155,6 @@ function useKanbanData() {
 
     let unsub: Unsubscribe;
     (async () => {
-      // Fetch data here already sorted by columnRank
       const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
       const userDoc = await getDoc(userDocRef);
 
@@ -128,59 +162,145 @@ function useKanbanData() {
         return;
       }
 
+      // Get posts that are new
+      const date = new Date();
+
       const postsCollectionRef = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.POSTS_COLLECTION);
-      const postQuery = query(postsCollectionRef, where("boardColumnId", "==", "new"), orderBy("columnRank"));
+      // Only listen to first page to avoid loading entire column
+      const postQuery = query(
+        postsCollectionRef,
+        where("boardColumnId", "==", "new"),
+        where("createdAt", ">", date.toISOString()),
+        orderBy("columnRank"),
+        limit(ITEMS_PER_PAGE),
+      );
 
       unsub = onSnapshot(postQuery, (snapshot) => {
-        const sortedPosts = snapshot.docs.map((post) => {
-          const data = post.data() as PostType;
-          return data;
-        });
+        const sortedPosts = snapshot.docs.map((doc) => doc.data() as PostType);
 
         const newPosts: Record<string, PostType> = {};
-        const newColumnsData: Record<string, KanbanColumnInterface> = {
-          new: {
-            id: "new",
-            title: "New",
-            postIds: [],
-          },
-        };
+        const newPostIds: string[] = [];
 
         for (const post of sortedPosts) {
-          const { id, boardColumnId } = post;
-          newPosts[id] = post;
-          newColumnsData[boardColumnId].postIds.push(id);
+          newPosts[post.id] = post;
+          newPostIds.push(post.id);
         }
+
+        setData((prev) => {
+          // Keep existing posts from pagination
+          const existingPostIds = prev.columns.new.postIds;
+          const mergedPostIds = [...newPostIds];
+
+          // Add remaining posts that aren't in the new snapshot
+          existingPostIds.forEach((id) => {
+            if (!newPostIds.includes(id)) {
+              mergedPostIds.push(id);
+            }
+          });
+
+          return {
+            posts: { ...prev.posts, ...newPosts },
+            columns: {
+              ...prev.columns,
+              new: {
+                ...prev.columns.new,
+                postIds: mergedPostIds,
+              },
+            },
+          };
+        });
+      });
+    })();
+
+    return () => unsub?.();
+  }, [user]);
+
+  // Load more items for a specific column
+  const loadMoreForColumn = useCallback(
+    async (columnId: string) => {
+      if (!user || pagination[columnId].loading || !pagination[columnId].hasMore) {
+        return;
+      }
+
+      setPagination((prev) => ({
+        ...prev,
+        [columnId]: { ...prev[columnId], loading: true },
+      }));
+
+      try {
+        const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
+        const postsCollectionRef = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.POSTS_COLLECTION);
+
+        const postQuery = pagination[columnId].lastDoc
+          ? query(
+              postsCollectionRef,
+              where("boardColumnId", "==", columnId),
+              orderBy("columnRank"),
+              startAfter(pagination[columnId].lastDoc),
+              limit(ITEMS_PER_PAGE),
+            )
+          : query(
+              postsCollectionRef,
+              where("boardColumnId", "==", columnId),
+              orderBy("columnRank"),
+              limit(ITEMS_PER_PAGE),
+            );
+
+        const snapshot = await getDocs(postQuery);
+        const newPosts: Record<string, PostType> = {};
+        const newPostIds: string[] = [];
+
+        snapshot.docs.forEach((doc) => {
+          const post = doc.data() as PostType;
+          newPosts[post.id] = post;
+          newPostIds.push(post.id);
+        });
 
         setData((prev) => ({
           posts: { ...prev.posts, ...newPosts },
           columns: {
             ...prev.columns,
-            ...newColumnsData,
+            [columnId]: {
+              ...prev.columns[columnId],
+              postIds: [...prev.columns[columnId].postIds, ...newPostIds],
+            },
           },
         }));
-      });
-    })();
 
-    return () => unsub();
-  }, [user]);
+        setPagination((prev) => ({
+          ...prev,
+          [columnId]: {
+            lastDoc: snapshot.docs[snapshot.docs.length - 1] || prev[columnId].lastDoc,
+            hasMore: snapshot.docs.length === ITEMS_PER_PAGE,
+            loading: false,
+          },
+        }));
+      } catch (error) {
+        toastError(error);
+        setPagination((prev) => ({
+          ...prev,
+          [columnId]: { ...prev[columnId], loading: false },
+        }));
+      }
+    },
+    [user, pagination],
+  );
 
   async function handleMoveOnSameColumn(result: DropResult) {
     const { source, destination, draggableId } = result;
 
-    if (!idToken) {
-      return;
-    }
-
-    if (!destination || source.droppableId !== destination.droppableId || source.index === destination.index) {
+    if (
+      !idToken ||
+      !destination ||
+      source.droppableId !== destination.droppableId ||
+      source.index === destination.index
+    ) {
       return;
     }
 
     try {
       const postIds = data.columns[source.droppableId].postIds;
-
       const isItemGoingDown = source.index < destination.index;
-
       const beforeOffset = isItemGoingDown ? 0 : -1;
       const afterOffset = isItemGoingDown ? 1 : 0;
 
@@ -194,7 +314,6 @@ function useKanbanData() {
       const newRank = generateKeyBetween(before, after);
       const post = data.posts[draggableId];
 
-      // Update db to reflect new rank
       post.boardColumnId = destination.droppableId;
       post.columnRank = newRank;
 
@@ -230,19 +349,14 @@ function useKanbanData() {
   async function handleMoveOnDifferentColumn(result: DropResult) {
     const { source, destination, draggableId } = result;
 
-    if (!idToken) {
-      return;
-    }
-
-    if (!destination || source.droppableId === destination.droppableId) {
+    if (!idToken || !destination || source.droppableId === destination.droppableId) {
       return;
     }
 
     try {
-      const sourcePostIds = data.columns[source.droppableId].postIds;
-      const destinationPostIds = data.columns[destination.droppableId].postIds;
+      const sourcePostIds = [...data.columns[source.droppableId].postIds];
+      const destinationPostIds = [...data.columns[destination.droppableId].postIds];
 
-      const newDestinationPostIds = [...destinationPostIds];
       const [movedPostId] = sourcePostIds.splice(source.index, 1);
 
       const before: string | null =
@@ -255,11 +369,10 @@ function useKanbanData() {
       const newRank = generateKeyBetween(before, after);
       const post = data.posts[draggableId];
 
-      // Update db to reflect new rank
       post.boardColumnId = destination.droppableId;
       post.columnRank = newRank;
 
-      newDestinationPostIds.splice(destination.index, 0, movedPostId);
+      destinationPostIds.splice(destination.index, 0, movedPostId);
 
       setData((prev) => ({
         posts: prev.posts,
@@ -267,11 +380,11 @@ function useKanbanData() {
           ...prev.columns,
           [source.droppableId]: {
             ...prev.columns[source.droppableId],
-            postIds: [...sourcePostIds],
+            postIds: sourcePostIds,
           },
           [destination.droppableId]: {
             ...prev.columns[destination.droppableId],
-            postIds: newDestinationPostIds,
+            postIds: destinationPostIds,
           },
         },
       }));
@@ -308,7 +421,13 @@ function useKanbanData() {
     handleMoveOnDifferentColumn(result);
   }
 
-  return { data, getAllPostsFromColumnId, handleOnDragEnd };
+  return {
+    data,
+    getAllPostsFromColumnId,
+    handleOnDragEnd,
+    loadMoreForColumn,
+    pagination,
+  };
 }
 
 export default useKanbanData;

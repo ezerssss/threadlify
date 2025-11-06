@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 
 import { CheckCircleIcon } from "lucide-react";
 import { siReddit } from "simple-icons";
@@ -59,4 +59,4 @@ function KanbanCard(props: PropsInteface) {
   );
 }
 
-export default KanbanCard;
+export default memo(KanbanCard);

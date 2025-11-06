@@ -21,7 +21,7 @@ function Kanban() {
   return (
     <>
       <DragDropContext onDragEnd={handleOnDragEnd}>
-        <div className="grid min-w-[800px] auto-rows-fr grid-cols-3 gap-4">
+        <div className="grid h-full min-w-[800px] auto-rows-fr grid-cols-3 gap-4">
           {COLUMN_IDS.map((columnId) => (
             <Droppable key={columnId} droppableId={columnId}>
               {(provided) => (
