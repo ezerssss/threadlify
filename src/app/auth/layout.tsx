@@ -2,29 +2,22 @@ import { ReactNode } from "react";
 
 import Image from "next/image";
 
-import { SpoolIcon } from "lucide-react";
-
-import { Separator } from "@/components/ui/separator";
-import { APP_CONFIG } from "@/config/app-config";
-
 export default function Layout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <main>
       <div className="grid h-dvh justify-center p-2 lg:grid-cols-2">
-        <div className="bg-primary relative order-2 hidden h-full rounded-3xl lg:flex">
-          <div className="text-primary-foreground absolute top-10 space-y-1 px-10">
-            <Image src="/images/Logo.png" alt="logo" height={200} width={200} />
-            {/* <SpoolIcon className="size-10" /> */}
-            {/* <h1 className="text-2xl font-medium">{APP_CONFIG.name}</h1> */}
-            <p className="text-sm">Your radar for market conversations.</p>
+        <div className="bg-primary relative order-2 hidden h-full items-center justify-center rounded-3xl lg:flex">
+          <div className="text-primary-foreground space-y-1 px-10">
+            <Image src="/images/Logo.png" alt="logo" height={300} width={300} />
+
+            <p className="text-center font-medium">Your radar for market conversations.</p>
           </div>
 
           <div className="absolute bottom-10 flex w-full justify-between px-10">
-            <div className="text-primary-foreground flex-1 space-y-1">
-              <h2 className="font-medium">Ready to uncover conversations?</h2>
+            <div className="text-primary-foreground flex-1 space-y-0.5">
+              <h2 className="text-[15px] font-medium">Ready to uncover conversations?</h2>
               <p className="text-sm">Get your account set up, and dive into your dashboard in minutes.</p>
             </div>
-            <Separator orientation="vertical" className="mx-3 !h-auto" />
           </div>
         </div>
         <div className="relative order-1 flex h-full">{children}</div>
