@@ -4,11 +4,9 @@ import { cookies } from "next/headers";
 
 import { AppSidebar } from "@/app/dashboard/_components/sidebar/app-sidebar";
 import ProtectedRouteWrapper from "@/components/protected-route-wrapper";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { getPreference } from "@/server/server-actions";
 import {
   SIDEBAR_VARIANT_VALUES,
   SIDEBAR_COLLAPSIBLE_VALUES,
@@ -30,12 +28,17 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
 
-  const [sidebarVariant, sidebarCollapsible, contentLayout, navbarStyle] = await Promise.all([
-    getPreference<SidebarVariant>("sidebar_variant", SIDEBAR_VARIANT_VALUES, "inset"),
-    getPreference<SidebarCollapsible>("sidebar_collapsible", SIDEBAR_COLLAPSIBLE_VALUES, "icon"),
-    getPreference<ContentLayout>("content_layout", CONTENT_LAYOUT_VALUES, "centered"),
-    getPreference<NavbarStyle>("navbar_style", NAVBAR_STYLE_VALUES, "sticky"),
-  ]);
+  // const [sidebarVariant, sidebarCollapsible, contentLayout, navbarStyle] = await Promise.all([
+  //   getPreference<SidebarVariant>("sidebar_variant", SIDEBAR_VARIANT_VALUES, "inset"),
+  //   getPreference<SidebarCollapsible>("sidebar_collapsible", SIDEBAR_COLLAPSIBLE_VALUES, "icon"),
+  //   getPreference<ContentLayout>("content_layout", CONTENT_LAYOUT_VALUES, "centered"),
+  //   getPreference<NavbarStyle>("navbar_style", NAVBAR_STYLE_VALUES, "sticky"),
+  // ]);
+
+  const sidebarVariant = "inset",
+    sidebarCollapsible = "icon",
+    contentLayout = "centered",
+    navbarStyle = "sticky";
 
   const layoutPreferences = {
     contentLayout,
