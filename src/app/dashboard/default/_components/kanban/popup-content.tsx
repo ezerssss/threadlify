@@ -162,7 +162,9 @@ function PopUpContent() {
                     {isRecommendedReply ? (
                       <p>{comment.body}</p>
                     ) : (
-                      <ReadMoreArea lettersLimit={100}>{comment.body}</ReadMoreArea>
+                      <ReadMoreArea lettersLimit={100} className="wrap-anywhere">
+                        {comment.body}
+                      </ReadMoreArea>
                     )}
 
                     <div className="flex items-end justify-between">

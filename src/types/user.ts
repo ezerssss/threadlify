@@ -9,6 +9,8 @@ export const UserDataSchema = z.object({
   url: z.url(),
   profile: z.object({
     description: z.string().min(1),
+    audience: z.string().min(1),
+    tone: z.string().min(1),
     keywords: z.string().array().min(1),
   }),
   strategy: z.string().min(1),
@@ -45,8 +47,10 @@ export type RegisterUserType = z.infer<typeof RegisterUserSchema>;
 export const EditUserProfileSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
-  growthStrategy: z.string().min(1),
+  audience: z.string().min(1),
+  tone: z.string().min(1),
   keywords: z.string().min(1).array().min(1),
+  growthStrategy: z.string().min(1),
 });
 
 export type EditUserProfileType = z.infer<typeof EditUserProfileSchema>;

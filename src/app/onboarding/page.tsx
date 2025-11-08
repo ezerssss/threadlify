@@ -67,12 +67,8 @@ function OnboardingPage() {
           throw new Error(data.message);
         }
       }
-
-      router.replace("/dashboard");
     } catch (error) {
       toastError(error);
-    } finally {
-      setIsLoading(false);
     }
   }
 

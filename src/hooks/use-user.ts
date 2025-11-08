@@ -10,6 +10,7 @@ import { UserDataType } from "@/types/user";
 
 export default function useUser() {
   const [user, setUser] = useState<User | null>();
+  const [isLoading, setIsLoading] = useState(true);
   const [idToken, setIdToken] = useState<string | null>();
   const [userData, setUserData] = useState<UserDataType | null>();
 
@@ -24,11 +25,13 @@ export default function useUser() {
       return;
     }
 
+    setIsLoading(true);
     const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
 
     const unsubscribe = onSnapshot(userDocRef, (doc) => {
       const data = doc.data() as UserDataType;
       setUserData(data);
+      setIsLoading(false);
     });
 
     return () => unsubscribe();
@@ -49,5 +52,5 @@ export default function useUser() {
     setInterval(getIdToken, REFRESH_JWT_TOKEN_INTERVAL_IN_MS);
   }, [user]);
 
-  return { user, userData, idToken };
+  return { user, userData, isLoading, idToken };
 }

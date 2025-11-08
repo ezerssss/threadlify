@@ -28,7 +28,7 @@ export default function EditProfileDialog({
   onSave,
   isLoading,
 }: {
-  profile: { name: string; description: string };
+  profile: { name: string; description: string; audience: string; tone: string };
   strategy: string;
   keywords: string[];
   onSave?: (data: EditUserProfileType) => Promise<void>;
@@ -41,6 +41,8 @@ export default function EditProfileDialog({
     defaultValues: {
       name: profile.name,
       description: profile.description,
+      audience: profile.audience,
+      tone: profile.tone,
       growthStrategy: strategy,
       keywords,
     },
@@ -101,6 +103,18 @@ export default function EditProfileDialog({
                 <Label>Description</Label>
                 <Textarea {...form.register("description")} />
                 {form.formState.errors.description && <p className="text-xs text-red-500">Description is required.</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Audience</Label>
+                <Textarea {...form.register("audience")} />
+                {form.formState.errors.audience && <p className="text-xs text-red-500">Audience is required.</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tone</Label>
+                <Textarea {...form.register("tone")} />
+                {form.formState.errors.tone && <p className="text-xs text-red-500">Tone is required.</p>}
               </div>
 
               <div className="space-y-2">

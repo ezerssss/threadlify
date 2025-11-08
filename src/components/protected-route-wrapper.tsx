@@ -11,6 +11,7 @@ import { PuffLoader } from "react-spinners";
 import UnauthorizedPage from "@/app/unauthorized/page";
 import { USERS_COLLECTION_REF } from "@/constants/firebase";
 import { auth } from "@/firebase";
+import useUser from "@/hooks/use-user";
 
 interface PropsInterface {
   children: JSX.Element;
@@ -25,30 +26,38 @@ function ProtectedRouteWrapper(props: PropsInterface): JSX.Element {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const { user, userData, isLoading: isUserDataLoading } = useUser();
+
+  useEffect(() => {
+    if (!user || isUserDataLoading) {
+      return;
+    }
+
+    if (!userData) {
+      router.push("/onboarding");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!userData.isOnboarded) {
+      router.push("/onboarding");
+      return;
+    }
+
+    if (pathname === "/onboarding") {
+      router.push("/dashboard");
+    }
+
+    setIsLoading(false);
+  }, [user, userData, isUserDataLoading, router]);
+
   useEffect(() => {
     return onAuthStateChanged(auth, async (user) => {
       setIsAuthenticated(!!user);
 
       if (!user) {
         router.push(`/auth/login?backTo=${pathname}`);
-        setIsLoading(false);
-        return;
       }
-
-      const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (!userDoc.exists()) {
-        router.push("/onboarding");
-        return;
-      }
-
-      const userData = userDoc.data();
-
-      if (!userData.isOnboarded) {
-        router.push("/onboarding");
-      }
-
       setIsLoading(false);
     });
   }, []);

@@ -9,7 +9,6 @@ export type CommentType = z.infer<typeof CommentSchema>;
 
 export const RecommendedReplySchema = z.object({
   reply: z.string().min(1),
-  replyTarget: z.string().min(1),
   targetComment: CommentSchema.nullable(),
 });
 
@@ -30,7 +29,6 @@ export const PostSchema = z.object({
   action: z.string().min(1),
   signalType: z.string().min(1),
   explanation: z.string().min(1),
-  engagementTarget: z.string().min(1),
   priority: z.string().min(1),
   recommendedReply: RecommendedReplySchema.nullable(),
 });

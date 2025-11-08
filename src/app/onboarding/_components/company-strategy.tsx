@@ -25,14 +25,15 @@ function InputCompanyStrategy(props: PropsInterface) {
       </h1>
 
       <p className="lg:text-md text-background mt-4 text-sm">
-        Tell us what your company&apos;s trying to achieve right now — maybe you&apos;re hunting for early users,
-        learning from your audience, or refining positioning. Your agents will use this to think like you.
+        Describe what your company’s focused on right now — whether that’s finding your first real users, learning what
+        resonates with your market, or shaping how people perceive your product. Your agents will use this to think and
+        prioritize like you.
       </p>
 
       <div className="mt-5">
         <textarea
           autoFocus
-          className="text-md w-full rounded-lg border px-3 py-2 outline sm:text-lg"
+          className="text-md field-sizing-content w-full rounded-lg border px-3 py-2 outline sm:text-lg"
           placeholder="finding early users who'll actually use the product"
           value={strategy}
           onChange={(e) => setStrategy(e.target.value)}

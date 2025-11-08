@@ -18,7 +18,7 @@ import { scanResultsColumns } from "./columns";
 import { recentLeadsData } from "./crm.config";
 
 export function ScanResultsTable() {
-  const { user } = useUser();
+  const { user, userData } = useUser();
   const [tableData, setTableData] = useState<ScanLogType[]>([]);
 
   const table = useDataTableInstance({
@@ -28,7 +28,7 @@ export function ScanResultsTable() {
   });
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !userData) {
       return;
     }
 
@@ -48,7 +48,7 @@ export function ScanResultsTable() {
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, userData]);
 
   return (
     <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:shadow-xs">

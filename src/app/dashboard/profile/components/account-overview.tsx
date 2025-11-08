@@ -67,7 +67,7 @@ export function AccountOverview() {
   }
 
   const { name, url, profile, strategy, subscription, totalScans } = userData;
-  const { description, keywords } = profile;
+  const { description, audience, tone, keywords } = profile;
   const { monthlyQuota, usedThisPeriod } = subscription;
   const remainingScans = monthlyQuota - usedThisPeriod;
 
@@ -109,7 +109,7 @@ export function AccountOverview() {
         <CardAction className="flex items-center gap-2">
           <EditProfileDialog
             isLoading={isLoading}
-            profile={{ name, description }}
+            profile={{ name, description, audience, tone }}
             keywords={keywords}
             strategy={strategy}
             onSave={handleSaveEdit}
@@ -122,6 +122,16 @@ export function AccountOverview() {
             <div className="space-y-1">
               <p className="font-bold">{name}</p>
               <p className="text-sm text-pretty">{profile.description}</p>
+            </div>
+            <Separator />
+            <div className="space-y-1">
+              <p className="font-bold">Audience</p>
+              <p className="text-sm text-pretty">{audience}</p>
+            </div>
+            <Separator />
+            <div className="space-y-1">
+              <p className="font-bold">Tone</p>
+              <p className="text-sm text-pretty">{tone}</p>
             </div>
             <Separator />
             <div className="space-y-1">

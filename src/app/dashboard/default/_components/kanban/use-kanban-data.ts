@@ -72,7 +72,7 @@ const defaultData: KanbanDataInterface = {
 };
 
 function useKanbanData() {
-  const { user, idToken } = useUser();
+  const { user, userData, idToken } = useUser();
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<KanbanDataInterface>({ ...defaultData });
   const [pagination, setPagination] = useState<PaginationState>({
@@ -89,7 +89,7 @@ function useKanbanData() {
 
   // Initial load - fetch first page for each column
   useEffect(() => {
-    if (!user) {
+    if (!user || !userData) {
       return;
     }
 
@@ -154,11 +154,11 @@ function useKanbanData() {
         setIsLoading(false);
       }
     })();
-  }, [user]);
+  }, [user, userData]);
 
   // Listener for new posts in "new" column only (real-time updates)
   useEffect(() => {
-    if (!user) {
+    if (!user || !userData) {
       return;
     }
 
@@ -222,7 +222,7 @@ function useKanbanData() {
     })();
 
     return () => unsub();
-  }, [user]);
+  }, [user, userData]);
 
   // Load more items for a specific column
   const loadMoreForColumn = useCallback(
