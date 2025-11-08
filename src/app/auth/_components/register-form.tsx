@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import ky from "ky";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { REGISTER_URL } from "@/constants/url";
 import { auth } from "@/firebase";
 import { toastError } from "@/lib/utils";
-import { GenericAPIResponse } from "@/types/generics";
 import { RegisterUserSchema, RegisterUserType } from "@/types/user";
 
 export function RegisterForm() {
