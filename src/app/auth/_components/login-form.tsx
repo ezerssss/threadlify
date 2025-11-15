@@ -56,7 +56,7 @@ export function LoginForm() {
 
       const userData = userDoc.data() as UserDataType;
 
-      if (!userData.isOnboarded) {
+      if (userData.onboardingStatus === "notAnswered") {
         router.push("/onboarding");
         return;
       }

@@ -2,6 +2,8 @@ import * as z from "zod";
 
 import { SubscriptionSchema } from "./subscription";
 
+export const OnboardingStatusEnum = z.enum(["notAnswered", "processing", "completed"]);
+
 export const UserDataSchema = z.object({
   id: z.string().min(1),
   email: z.email(),
@@ -10,11 +12,15 @@ export const UserDataSchema = z.object({
   profile: z.object({
     description: z.string().min(1),
     audience: z.string().min(1),
-    tone: z.string().min(1),
+    mainValueProposition: z.string().min(1),
+    valueMechanism: z.string().min(1),
+    strengths: z.string().array().min(1),
     keywords: z.string().array().min(1),
+    extendedContext: z.string().min(1),
   }),
   strategy: z.string().min(1),
-  isOnboarded: z.boolean(),
+
+  onboardingStatus: OnboardingStatusEnum,
   isInitialFetchDone: z.boolean(),
   isScanning: z.boolean(),
   processStatus: z.string(),
@@ -48,7 +54,6 @@ export const EditUserProfileSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
   audience: z.string().min(1),
-  tone: z.string().min(1),
   keywords: z.string().min(1).array().min(1),
   growthStrategy: z.string().min(1),
 });

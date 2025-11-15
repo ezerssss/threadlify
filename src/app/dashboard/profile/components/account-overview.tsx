@@ -10,8 +10,6 @@ import { siFacebook, siReddit, siX } from "simple-icons";
 import { toast } from "sonner";
 import { parse } from "tldts";
 
-import { SimpleIcon } from "@/components/simple-icon";
-import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -23,41 +21,6 @@ import { EditUserProfileType } from "@/types/user";
 import EditProfileDialog from "./edit-profile-dialog";
 import { AccountOverViewSkeleton } from "./skeleton/account-overview-skeleton";
 
-const recentPayments = [
-  {
-    id: 1,
-    icon: siReddit,
-    title: "Reddit",
-    subtitle: "Scanned relevant subreddits",
-    amount: 19,
-    date: "Jul 8",
-  },
-  {
-    id: 2,
-    icon: siX,
-    title: "X",
-    subtitle: "1 year worth of posts scanned and analyzed",
-    amount: 84,
-    date: "Jul 7",
-  },
-  {
-    id: 3,
-    icon: siReddit,
-    title: "Reddit",
-    subtitle: "1 year worth of posts scanned and analyzed",
-    amount: 160,
-    date: "Jul 4",
-  },
-  {
-    id: 4,
-    icon: siFacebook,
-    title: "Facebook",
-    subtitle: "1 year worth of posts scanned and analyzed",
-    amount: 340,
-    date: "Jul 4",
-  },
-];
-
 export function AccountOverview() {
   const { userData, idToken } = useUser();
   const [isLoading, setIsLoading] = useState(false);
@@ -67,7 +30,7 @@ export function AccountOverview() {
   }
 
   const { name, url, profile, strategy, subscription, totalScans } = userData;
-  const { description, audience, tone, keywords } = profile;
+  const { description, audience, keywords } = profile;
   const { monthlyQuota, usedThisPeriod } = subscription;
   const remainingScans = monthlyQuota - usedThisPeriod;
 
@@ -109,7 +72,7 @@ export function AccountOverview() {
         <CardAction className="flex items-center gap-2">
           <EditProfileDialog
             isLoading={isLoading}
-            profile={{ name, description, audience, tone }}
+            profile={{ name, description, audience }}
             keywords={keywords}
             strategy={strategy}
             onSave={handleSaveEdit}
@@ -127,11 +90,6 @@ export function AccountOverview() {
             <div className="space-y-1">
               <p className="font-bold">Audience</p>
               <p className="text-sm text-pretty">{audience}</p>
-            </div>
-            <Separator />
-            <div className="space-y-1">
-              <p className="font-bold">Tone</p>
-              <p className="text-sm text-pretty">{tone}</p>
             </div>
             <Separator />
             <div className="space-y-1">

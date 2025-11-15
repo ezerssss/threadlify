@@ -39,7 +39,7 @@ function ProtectedRouteWrapper(props: PropsInterface): JSX.Element {
       return;
     }
 
-    if (!userData.isOnboarded) {
+    if (userData.onboardingStatus === "notAnswered") {
       router.push("/onboarding");
       return;
     }
@@ -49,7 +49,7 @@ function ProtectedRouteWrapper(props: PropsInterface): JSX.Element {
     }
 
     setIsLoading(false);
-  }, [user, userData, isUserDataLoading, router]);
+  }, [user, userData, isUserDataLoading, router, pathname]);
 
   useEffect(() => {
     return onAuthStateChanged(auth, async (user) => {

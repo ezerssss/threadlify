@@ -43,7 +43,7 @@ export function GoogleButton({ className, ...props }: React.ComponentProps<typeo
 
       const userData = userDoc.data() as UserDataType;
 
-      if (!userData.isOnboarded) {
+      if (userData.onboardingStatus === "notAnswered") {
         router.push("/onboarding");
         return;
       }
