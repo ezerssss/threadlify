@@ -12,7 +12,7 @@ export function ShowReasoning(props: PropsInterface) {
     <HoverCard>
       <HoverCardTrigger asChild>
         <Button tabIndex={-1} variant="link" className="w-fit p-0 text-xs">
-          Show agent reasoning
+          Show reasoning
         </Button>
       </HoverCardTrigger>
       <HoverCardContent className="w-80">
