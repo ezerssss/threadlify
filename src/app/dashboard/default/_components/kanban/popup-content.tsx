@@ -17,6 +17,8 @@ import { cn, formatISODate, toastError } from "@/lib/utils";
 import { useKanbanStore } from "@/stores/kanban";
 import { CommentType, PostType } from "@/types/post";
 
+import { ShowReasoning } from "./show-reasoning";
+
 // eslint-disable-next-line complexity
 function PopUpContent() {
   const { userData } = useUser();
@@ -103,21 +105,25 @@ function PopUpContent() {
               )}
             </section>
 
-            <section className="flex flex-wrap gap-2">
-              <Badge variant={badgeColor} className="h-6 shrink-0 rounded-sm px-1.5 capitalize">
-                {post.priority}
-              </Badge>
+            <section className="flex items-center justify-between pr-3">
+              <div className="flex flex-wrap gap-2">
+                <Badge variant={badgeColor} className="h-6 shrink-0 rounded-sm px-1.5 capitalize">
+                  {post.priority}
+                </Badge>
 
-              <Badge variant="secondary" className="h-6 shrink-0 rounded-sm px-1.5 capitalize">
-                {post.action}
-              </Badge>
+                <Badge variant="secondary" className="h-6 shrink-0 rounded-sm px-1.5 capitalize">
+                  {post.action}
+                </Badge>
 
-              <Badge variant="outline" className="flex h-6 shrink-0 items-center gap-1 rounded-sm px-1.5">
-                <CheckCircleIcon size={12} /> <span>{post.signalType}</span>
-              </Badge>
+                <Badge variant="outline" className="flex h-6 shrink-0 items-center gap-1 rounded-sm px-1.5">
+                  <CheckCircleIcon size={12} /> <span>{post.signalType}</span>
+                </Badge>
+              </div>
+
+              <ShowReasoning reasoning={post.reasoning} />
             </section>
 
-            <section className="scrollbar-thin flex-2 space-y-2 overflow-auto">
+            <section className="scrollbar-thin flex-3 space-y-2 overflow-auto">
               <Link href={post.url} target="_blank" className="block w-fit pr-5 text-xl font-bold underline">
                 {post.title}
               </Link>

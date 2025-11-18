@@ -29,6 +29,7 @@ export const PostSchema = z.object({
   action: z.string().min(1),
   signalType: z.string().min(1),
   explanation: z.string().min(1),
+  reasoning: z.string().array(),
   priority: z.string().min(1),
   recommendedReply: RecommendedReplySchema.nullable(),
 });
