@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 
-import { useRouter } from "next/navigation";
-
 import { StatusCodes } from "http-status-codes";
 import ky from "ky";
 
@@ -17,7 +15,6 @@ import InputCompanyStrategy from "./_components/company-strategy";
 import InputCompanyUrl from "./_components/company-url";
 
 function OnboardingPage() {
-  const router = useRouter();
   const { user, idToken } = useUser();
 
   const [url, setUrl] = useState("");

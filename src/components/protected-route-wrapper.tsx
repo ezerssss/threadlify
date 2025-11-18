@@ -45,7 +45,7 @@ function ProtectedRouteWrapper(props: PropsInterface): JSX.Element {
     }
 
     if (pathname === "/onboarding") {
-      router.push("/dashboard");
+      router.push("/dashboard/default?showIntro=true");
     }
 
     setIsLoading(false);
@@ -60,7 +60,7 @@ function ProtectedRouteWrapper(props: PropsInterface): JSX.Element {
       }
       setIsLoading(false);
     });
-  }, []);
+  }, [router, pathname]);
 
   const authCheck = isAuthenticated ? children : UnauthorizedPage();
 

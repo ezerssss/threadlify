@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { PostType } from "@/types/post";
 
+import EmptyKanban from "./empty";
 import KanbanCard from "./kanban-card";
 import PopUpContent from "./popup-content";
 import useKanbanData from "./use-kanban-data";
@@ -18,37 +19,45 @@ const COLUMN_COLOR: Record<string, string> = { new: "bg-green-500", inProgress: 
 function Kanban() {
   const { data, getAllPostsFromColumnId, handleOnDragEnd, isLoading } = useKanbanData();
 
+  const isKanbanEmpty = !isLoading && Object.keys(data.posts).length < 1;
+
   return (
     <>
-      <DragDropContext onDragEnd={handleOnDragEnd}>
-        <div className={cn("grid h-full min-w-[800px] auto-rows-fr grid-cols-3 gap-4", isLoading && "animate-pulse")}>
-          {COLUMN_IDS.map((columnId) => (
-            <Droppable key={columnId} droppableId={columnId}>
-              {(provided) => (
-                <div className="bg-card flex flex-col gap-2.5 rounded-md border p-2.5 shadow-xs">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex items-center gap-2">
-                        <div className={cn("h-3 w-3 rounded-full", COLUMN_COLOR[columnId])} />
-                        <span className="text-sm font-semibold">{data.columns[columnId].title}</span>
+      <div className="relative">
+        {isKanbanEmpty && <EmptyKanban />}
+
+        {!isKanbanEmpty && !isLoading && (
+          <DragDropContext onDragEnd={handleOnDragEnd}>
+            <div className={cn("grid h-full min-w-[800px] auto-rows-fr grid-cols-3 gap-4")}>
+              {COLUMN_IDS.map((columnId) => (
+                <Droppable key={columnId} droppableId={columnId}>
+                  {(provided) => (
+                    <div className="bg-card flex flex-col gap-2.5 rounded-md border p-2.5 shadow-xs">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex items-center gap-2">
+                            <div className={cn("h-3 w-3 rounded-full", COLUMN_COLOR[columnId])} />
+                            <span className="text-sm font-semibold">{data.columns[columnId].title}</span>
+                          </div>
+                          <Badge variant="secondary">{data.columns[columnId].postIds.length}</Badge>
+                        </div>
                       </div>
-                      <Badge variant="secondary">{data.columns[columnId].postIds.length}</Badge>
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className="min-h-[400px] flex-1 space-y-2.5"
+                      >
+                        <MemoizedInnerList posts={getAllPostsFromColumnId(columnId)} columnId={columnId} />
+                        {provided.placeholder}
+                      </div>
                     </div>
-                  </div>
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className="min-h-[200px] flex-1 space-y-2.5"
-                  >
-                    <MemoizedInnerList posts={getAllPostsFromColumnId(columnId)} columnId={columnId} />
-                    {provided.placeholder}
-                  </div>
-                </div>
-              )}
-            </Droppable>
-          ))}
-        </div>
-      </DragDropContext>
+                  )}
+                </Droppable>
+              ))}
+            </div>
+          </DragDropContext>
+        )}
+      </div>
       <PopUpContent />
     </>
   );

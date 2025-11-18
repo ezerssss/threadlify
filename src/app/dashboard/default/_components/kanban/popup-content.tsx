@@ -120,7 +120,7 @@ function PopUpContent() {
                 </Badge>
               </div>
 
-              <ShowReasoning reasoning={post.reasoning} />
+              {/* <ShowReasoning reasoning={post.reasoning} /> */}
             </section>
 
             <section className="scrollbar-thin flex-3 space-y-2 overflow-auto">
@@ -153,7 +153,7 @@ function PopUpContent() {
                   <div
                     key={comment.author + index}
                     className={cn(
-                      "bg-card relative block cursor-default space-y-2 rounded-md border p-2.5 text-sm shadow-xs",
+                      "bg-card relative block max-w-full cursor-default space-y-2 rounded-md border p-2.5 text-sm shadow-xs",
                       isRecommendedReply && "border-primary mt-4 cursor-pointer",
                       isRecommendedReply && indexOfReply !== 0 && "ml-5",
                     )}

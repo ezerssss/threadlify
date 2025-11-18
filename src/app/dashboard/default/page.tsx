@@ -1,9 +1,13 @@
+import OnboardingModal from "./_components/intro-modal";
 import Kanban from "./_components/kanban";
 
 export default function Page() {
   return (
-    <div className="overflow-x-auto">
-      <Kanban />
-    </div>
+    <>
+      <OnboardingModal />
+      <div className="overflow-x-auto">
+        <Kanban />
+      </div>
+    </>
   );
 }

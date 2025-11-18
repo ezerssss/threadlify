@@ -25,8 +25,8 @@ export function AccountSwitcher() {
     return null;
   }
 
-  function handleLogout() {
-    auth.signOut();
+  async function handleLogout() {
+    await auth.signOut();
     router.replace("/auth/login");
   }
 
