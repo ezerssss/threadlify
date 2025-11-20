@@ -89,7 +89,7 @@ function useKanbanData() {
 
   // Initial load - fetch first page for each column
   useEffect(() => {
-    if (!user || !userData) {
+    if (!user) {
       return;
     }
 
@@ -154,11 +154,11 @@ function useKanbanData() {
         setIsLoading(false);
       }
     })();
-  }, [user, userData]);
+  }, [user]);
 
   // Listener for new posts in "new" column only (real-time updates)
   useEffect(() => {
-    if (!user || !userData) {
+    if (!user) {
       return;
     }
 
@@ -222,7 +222,7 @@ function useKanbanData() {
     })();
 
     return () => unsub();
-  }, [user, userData]);
+  }, [user]);
 
   // Load more items for a specific column
   const loadMoreForColumn = useCallback(

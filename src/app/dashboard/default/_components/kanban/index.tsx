@@ -19,16 +19,16 @@ const COLUMN_COLOR: Record<string, string> = { new: "bg-green-500", inProgress: 
 function Kanban() {
   const { data, getAllPostsFromColumnId, handleOnDragEnd, isLoading } = useKanbanData();
 
-  const isKanbanEmpty = !isLoading && Object.keys(data.posts).length < 1;
+  const isKanbanEmpty = Object.keys(data.posts).length < 1;
 
   return (
     <>
       <div className="relative">
-        {isKanbanEmpty && <EmptyKanban />}
+        {!isLoading && isKanbanEmpty && <EmptyKanban />}
 
-        {!isKanbanEmpty && !isLoading && (
+        {!isLoading && !isKanbanEmpty && (
           <DragDropContext onDragEnd={handleOnDragEnd}>
-            <div className={cn("grid h-full min-w-[800px] auto-rows-fr grid-cols-3 gap-4")}>
+            <div className="grid h-full min-w-[800px] auto-rows-fr grid-cols-3 gap-4">
               {COLUMN_IDS.map((columnId) => (
                 <Droppable key={columnId} droppableId={columnId}>
                   {(provided) => (
