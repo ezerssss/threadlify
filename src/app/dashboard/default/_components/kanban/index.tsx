@@ -5,6 +5,7 @@ import { memo } from "react";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 
 import { Badge } from "@/components/ui/badge";
+import useUser from "@/hooks/use-user";
 import { cn } from "@/lib/utils";
 import { PostType } from "@/types/post";
 
@@ -17,7 +18,12 @@ const COLUMN_IDS = ["new", "inProgress", "done"];
 const COLUMN_COLOR: Record<string, string> = { new: "bg-green-500", inProgress: "bg-yellow-500", done: "bg-gray-400" };
 
 function Kanban() {
+  const { userData } = useUser();
   const { data, getAllPostsFromColumnId, handleOnDragEnd, isLoading } = useKanbanData();
+
+  if (!userData) {
+    return null;
+  }
 
   const isKanbanEmpty = Object.keys(data.posts).length < 1;
 

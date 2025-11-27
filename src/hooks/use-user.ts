@@ -29,6 +29,12 @@ export default function useUser() {
     const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
 
     const unsubscribe = onSnapshot(userDocRef, (doc) => {
+      if (!doc.exists()) {
+        setUserData(null);
+        setIsLoading(false);
+        return;
+      }
+
       const data = doc.data() as UserDataType;
       setUserData(data);
       setIsLoading(false);
