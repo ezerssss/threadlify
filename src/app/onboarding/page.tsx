@@ -79,6 +79,9 @@ function OnboardingPage() {
 
       const { growthStrategy } = await ky
         .post(GENERATE_STRATEGY_URL, {
+          retry: {
+            retryOnTimeout: true,
+          },
           json: { url },
           headers: {
             Authorization: `Bearer ${idToken}`,
