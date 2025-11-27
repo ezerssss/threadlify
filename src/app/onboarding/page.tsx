@@ -79,6 +79,7 @@ function OnboardingPage() {
 
       const { growthStrategy } = await ky
         .post(GENERATE_STRATEGY_URL, {
+          timeout: 40000,
           retry: {
             retryOnTimeout: true,
           },
