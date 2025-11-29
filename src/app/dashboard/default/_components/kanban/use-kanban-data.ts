@@ -1,25 +1,12 @@
 /* eslint-disable max-lines */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 import { DropResult } from "@hello-pangea/dnd";
 import { arrayMoveImmutable } from "array-move";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  onSnapshot,
-  orderBy,
-  query,
-  Unsubscribe,
-  where,
-  limit,
-  startAfter,
-  QueryDocumentSnapshot,
-  DocumentData,
-} from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, onSnapshot, query, Unsubscribe, where } from "firebase/firestore";
 import { generateKeyBetween } from "fractional-indexing";
 import ky from "ky";
+import { toast } from "sonner";
 
 import { USERS_COLLECTION_REF } from "@/constants/firebase";
 import { KANBAN_CHANGE_URL } from "@/constants/url";
@@ -28,6 +15,8 @@ import useUser from "@/hooks/use-user";
 import { toastError } from "@/lib/utils";
 import { KanbanChangeRequestType } from "@/types/kanban";
 import { PostType } from "@/types/post";
+
+import { SortState } from "./sort-by";
 
 interface KanbanColumnInterface {
   id: string;
@@ -39,16 +28,6 @@ interface KanbanDataInterface {
   posts: Record<string, PostType>;
   columns: Record<string, KanbanColumnInterface>;
 }
-
-interface PaginationState {
-  [columnId: string]: {
-    lastDoc: QueryDocumentSnapshot<DocumentData> | null;
-    hasMore: boolean;
-    loading: boolean;
-  };
-}
-
-const ITEMS_PER_PAGE = 100;
 
 const defaultData: KanbanDataInterface = {
   posts: {},
@@ -71,15 +50,98 @@ const defaultData: KanbanDataInterface = {
   },
 };
 
+export interface SortByInterface {
+  new: SortState;
+  inProgress: SortState;
+  done: SortState;
+}
+
+const defaultSortState: SortByInterface = {
+  new: {
+    field: "priority",
+    direction: "desc",
+  },
+  inProgress: {
+    field: "none",
+    direction: "desc",
+  },
+  done: {
+    field: "none",
+    direction: "desc",
+  },
+};
+
+const priorityRank: Record<string, number> = {
+  high: 3,
+  medium: 2,
+  low: 1,
+};
+
 function useKanbanData() {
   const { user, userData, idToken } = useUser();
+  const [sortBy, setSortBy] = useState<SortByInterface>(defaultSortState);
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<KanbanDataInterface>({ ...defaultData });
-  const [pagination, setPagination] = useState<PaginationState>({
-    new: { lastDoc: null, hasMore: true, loading: false },
-    inProgress: { lastDoc: null, hasMore: true, loading: false },
-    done: { lastDoc: null, hasMore: true, loading: false },
-  });
+
+  function sortPosts(posts: PostType[], field: string, direction: string): PostType[] {
+    const sortedPosts: PostType[] = [...posts];
+
+    switch (field) {
+      case "none":
+        sortedPosts.sort((a, b) => (a.columnRank < b.columnRank ? -1 : 1));
+
+        break;
+
+      case "priority":
+        sortedPosts.sort((a, b) => {
+          const A = priorityRank[a.priority.toLowerCase()];
+          const B = priorityRank[b.priority.toLowerCase()];
+
+          // Sort by post date
+          if (A === B) {
+            const A1 = a.postCreatedAt;
+            const B1 = b.postCreatedAt;
+
+            return direction === "asc" ? A1.localeCompare(B1) : B1.localeCompare(A1);
+          } else {
+            return direction === "asc" ? A - B : B - A;
+          }
+        });
+        break;
+
+      case "date":
+        sortedPosts.sort((a, b) => {
+          const A = a.postCreatedAt;
+          const B = b.postCreatedAt;
+
+          return direction === "asc" ? A.localeCompare(B) : B.localeCompare(A);
+        });
+    }
+
+    return sortedPosts;
+  }
+
+  function handleSortChange(columnId: keyof SortByInterface, value: SortState) {
+    setSortBy((prev) => ({
+      ...prev,
+      [columnId]: value,
+    }));
+
+    const posts = getAllPostsFromColumnId(columnId);
+    const sortedPosts = sortPosts(posts, value.field, value.direction);
+    const sortedPostIds = sortedPosts.map((post) => post.id);
+
+    setData((prev) => ({
+      ...prev,
+      columns: {
+        ...prev.columns,
+        [columnId]: {
+          ...prev.columns[columnId],
+          postIds: sortedPostIds,
+        },
+      },
+    }));
+  }
 
   function getAllPostsFromColumnId(columnId: string): PostType[] {
     const postIds = data.columns[columnId].postIds;
@@ -113,41 +175,29 @@ function useKanbanData() {
           inProgress: { id: "inProgress", title: "In Progress", postIds: [] },
           done: { id: "done", title: "Done", postIds: [] },
         };
-        const newPagination: PaginationState = {
-          new: { lastDoc: null, hasMore: true, loading: false },
-          inProgress: { lastDoc: null, hasMore: true, loading: false },
-          done: { lastDoc: null, hasMore: true, loading: false },
-        };
 
-        // Fetch first page for each column
         for (const columnId of ["new", "inProgress", "done"]) {
-          const postQuery = query(
-            postsCollectionRef,
-            where("boardColumnId", "==", columnId),
-            orderBy("columnRank"),
-            // limit(ITEMS_PER_PAGE),
-          );
+          const postQuery = query(postsCollectionRef, where("boardColumnId", "==", columnId));
 
           const snapshot = await getDocs(postQuery);
+          const posts: PostType[] = [];
 
           snapshot.docs.forEach((doc) => {
             const post = doc.data() as PostType;
+            posts.push(post);
             newPosts[post.id] = post;
-            newColumnsData[columnId].postIds.push(post.id);
           });
 
-          newPagination[columnId] = {
-            lastDoc: snapshot.docs[snapshot.docs.length - 1] || null,
-            hasMore: snapshot.docs.length === ITEMS_PER_PAGE,
-            loading: false,
-          };
+          const sortState = defaultSortState[columnId as keyof SortByInterface];
+          const sortedPosts = sortPosts(posts, sortState.field, sortState.direction);
+          const sortedPostIds: string[] = sortedPosts.map((post) => post.id);
+          newColumnsData[columnId].postIds = sortedPostIds;
         }
 
         setData({
           posts: newPosts,
           columns: newColumnsData,
         });
-        setPagination(newPagination);
       } catch (error) {
         toastError(error);
       } finally {
@@ -180,22 +230,22 @@ function useKanbanData() {
         postsCollectionRef,
         where("boardColumnId", "==", "new"),
         where("createdAt", ">", date.toISOString()),
-        orderBy("columnRank"),
-        // limit(ITEMS_PER_PAGE),
       );
 
       unsub = onSnapshot(postQuery, (snapshot) => {
-        const sortedPosts = snapshot.docs.map((doc) => doc.data() as PostType);
+        const posts = snapshot.docs.map((doc) => doc.data() as PostType);
 
         const newPosts: Record<string, PostType> = {};
         const newPostIds: string[] = [];
 
-        for (const post of sortedPosts) {
+        for (const post of posts) {
           newPosts[post.id] = post;
           newPostIds.push(post.id);
         }
 
         setData((prev) => {
+          const mergedPosts = { ...prev.posts, ...newPosts };
+
           // Keep existing posts from pagination
           const existingPostIds = prev.columns.new.postIds;
           const mergedPostIds = [...newPostIds];
@@ -207,13 +257,17 @@ function useKanbanData() {
             }
           });
 
+          const mergedNewPosts: PostType[] = mergedPostIds.map((postId) => mergedPosts[postId]);
+          const sortedNewPosts: PostType[] = sortPosts(mergedNewPosts, sortBy.new.field, sortBy.new.direction);
+          const sortedNewPostIds: string[] = sortedNewPosts.map((post) => post.id);
+
           return {
-            posts: { ...prev.posts, ...newPosts },
+            posts: mergedPosts,
             columns: {
               ...prev.columns,
               new: {
                 ...prev.columns.new,
-                postIds: mergedPostIds,
+                postIds: sortedNewPostIds,
               },
             },
           };
@@ -222,79 +276,9 @@ function useKanbanData() {
     })();
 
     return () => unsub();
-  }, [user, userData?.id]);
+  }, [user, userData?.id, sortBy.new.field, sortBy.new.direction]);
 
-  // Load more items for a specific column
-  const loadMoreForColumn = useCallback(
-    async (columnId: string) => {
-      if (!user || pagination[columnId].loading || !pagination[columnId].hasMore) {
-        return;
-      }
-
-      setPagination((prev) => ({
-        ...prev,
-        [columnId]: { ...prev[columnId], loading: true },
-      }));
-
-      try {
-        const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
-        const postsCollectionRef = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.POSTS_COLLECTION);
-
-        const postQuery = pagination[columnId].lastDoc
-          ? query(
-              postsCollectionRef,
-              where("boardColumnId", "==", columnId),
-              orderBy("columnRank"),
-              startAfter(pagination[columnId].lastDoc),
-              limit(ITEMS_PER_PAGE),
-            )
-          : query(
-              postsCollectionRef,
-              where("boardColumnId", "==", columnId),
-              orderBy("columnRank"),
-              limit(ITEMS_PER_PAGE),
-            );
-
-        const snapshot = await getDocs(postQuery);
-        const newPosts: Record<string, PostType> = {};
-        const newPostIds: string[] = [];
-
-        snapshot.docs.forEach((doc) => {
-          const post = doc.data() as PostType;
-          newPosts[post.id] = post;
-          newPostIds.push(post.id);
-        });
-
-        setData((prev) => ({
-          posts: { ...prev.posts, ...newPosts },
-          columns: {
-            ...prev.columns,
-            [columnId]: {
-              ...prev.columns[columnId],
-              postIds: [...prev.columns[columnId].postIds, ...newPostIds],
-            },
-          },
-        }));
-
-        setPagination((prev) => ({
-          ...prev,
-          [columnId]: {
-            lastDoc: snapshot.docs[snapshot.docs.length - 1] || prev[columnId].lastDoc,
-            hasMore: snapshot.docs.length === ITEMS_PER_PAGE,
-            loading: false,
-          },
-        }));
-      } catch (error) {
-        toastError(error);
-        setPagination((prev) => ({
-          ...prev,
-          [columnId]: { ...prev[columnId], loading: false },
-        }));
-      }
-    },
-    [user, pagination],
-  );
-
+  // eslint-disable-next-line complexity
   async function handleMoveOnSameColumn(result: DropResult) {
     const { source, destination, draggableId } = result;
 
@@ -304,6 +288,11 @@ function useKanbanData() {
       source.droppableId !== destination.droppableId ||
       source.index === destination.index
     ) {
+      return;
+    }
+
+    if (sortBy[destination.droppableId as keyof SortByInterface].field !== "none") {
+      toast.info("Reordering is disabled while this column is sorted. Remove sorting to drag items.");
       return;
     }
 
@@ -355,6 +344,7 @@ function useKanbanData() {
     }
   }
 
+  // eslint-disable-next-line complexity
   async function handleMoveOnDifferentColumn(result: DropResult) {
     const { source, destination, draggableId } = result;
 
@@ -368,12 +358,33 @@ function useKanbanData() {
 
       const [movedPostId] = sourcePostIds.splice(source.index, 1);
 
-      const before: string | null =
-        destination.index === 0 ? null : data.posts[destinationPostIds[destination.index - 1]].columnRank;
-      const after: string | null =
-        destination.index === destinationPostIds.length
+      let destinationIndex = destination.index;
+
+      const sortState = sortBy[destination.droppableId as keyof SortByInterface];
+      if (sortState.field !== "none") {
+        const mergedIds: string[] = [...destinationPostIds, movedPostId];
+        const posts: PostType[] = mergedIds.map((id) => data.posts[id]);
+        const sortedPosts: PostType[] = sortPosts(posts, sortState.field, sortState.direction);
+
+        destinationIndex = sortedPosts.findIndex((post) => post.id === draggableId);
+
+        if (destinationIndex === -1) {
+          destinationIndex = destinationPostIds.length;
+        }
+      }
+
+      let before: string | null =
+        destinationIndex === 0 ? null : data.posts[destinationPostIds[destinationIndex - 1]].columnRank;
+      let after: string | null =
+        destinationIndex === destinationPostIds.length
           ? null
-          : data.posts[destinationPostIds[destination.index]].columnRank;
+          : data.posts[destinationPostIds[destinationIndex]].columnRank;
+
+      if (before !== null && after !== null && before > after) {
+        const temp = before;
+        before = after;
+        after = temp;
+      }
 
       const newRank = generateKeyBetween(before, after);
       const post = data.posts[draggableId];
@@ -381,7 +392,7 @@ function useKanbanData() {
       post.boardColumnId = destination.droppableId;
       post.columnRank = newRank;
 
-      destinationPostIds.splice(destination.index, 0, movedPostId);
+      destinationPostIds.splice(destinationIndex, 0, movedPostId);
 
       setData((prev) => ({
         posts: prev.posts,
@@ -434,9 +445,9 @@ function useKanbanData() {
     data,
     getAllPostsFromColumnId,
     handleOnDragEnd,
-    loadMoreForColumn,
-    pagination,
     isLoading,
+    sortBy,
+    handleSortChange,
   };
 }
 

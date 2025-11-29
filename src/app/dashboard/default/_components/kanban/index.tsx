@@ -12,14 +12,15 @@ import { PostType } from "@/types/post";
 import EmptyKanban from "./empty";
 import KanbanCard from "./kanban-card";
 import PopUpContent from "./popup-content";
-import useKanbanData from "./use-kanban-data";
+import { SortByButton } from "./sort-by";
+import useKanbanData, { SortByInterface } from "./use-kanban-data";
 
 const COLUMN_IDS = ["new", "inProgress", "done"];
 const COLUMN_COLOR: Record<string, string> = { new: "bg-green-500", inProgress: "bg-yellow-500", done: "bg-gray-400" };
 
 function Kanban() {
   const { userData } = useUser();
-  const { data, getAllPostsFromColumnId, handleOnDragEnd, isLoading } = useKanbanData();
+  const { data, getAllPostsFromColumnId, handleOnDragEnd, isLoading, sortBy, handleSortChange } = useKanbanData();
 
   if (!userData) {
     return null;
@@ -47,6 +48,12 @@ function Kanban() {
                           </div>
                           <Badge variant="secondary">{data.columns[columnId].postIds.length}</Badge>
                         </div>
+
+                        <SortByButton
+                          value={sortBy[columnId as keyof SortByInterface]}
+                          disabled={isLoading}
+                          onChange={(value) => handleSortChange(columnId as keyof SortByInterface, value)}
+                        />
                       </div>
                       <div
                         ref={provided.innerRef}
