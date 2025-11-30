@@ -371,9 +371,17 @@ function useKanbanData() {
 
     try {
       const sourcePostIds = [...data.columns[source.droppableId].postIds];
+      let sourceIndex = source.index;
+      const foundSourceIndex = sourcePostIds.findIndex((postId) => postId === draggableId);
+
+      if (sourceIndex !== foundSourceIndex) {
+        console.log("Source index mismatch! Changing to found source index.");
+        sourceIndex = foundSourceIndex;
+      }
+
       const destinationPostIds = [...data.columns[destination.droppableId].postIds];
 
-      const [movedPostId] = sourcePostIds.splice(source.index, 1);
+      const [movedPostId] = sourcePostIds.splice(sourceIndex, 1);
 
       let destinationIndex = destination.index;
 
