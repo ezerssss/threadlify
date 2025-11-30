@@ -20,7 +20,15 @@ const COLUMN_COLOR: Record<string, string> = { new: "bg-green-500", inProgress: 
 
 function Kanban() {
   const { userData } = useUser();
-  const { data, getAllPostsFromColumnId, handleOnDragEnd, isLoading, sortBy, handleSortChange } = useKanbanData();
+  const {
+    data,
+    getAllPostsFromColumnId,
+    handleOnDragEnd,
+    isLoading,
+    sortBy,
+    handleSortChange,
+    handleMoveOnDifferentColumn,
+  } = useKanbanData();
 
   if (!userData) {
     return null;
@@ -71,7 +79,7 @@ function Kanban() {
           </DragDropContext>
         )}
       </div>
-      <PopUpContent />
+      <PopUpContent handleChangeStatus={handleMoveOnDifferentColumn} />
     </>
   );
 }
@@ -95,7 +103,7 @@ function InnerList(props: InnerListPropInterface) {
               {...provided.dragHandleProps}
               className={cn(columnId === "done" && "opacity-50")}
             >
-              <KanbanCard post={post} />
+              <KanbanCard post={post} index={index} />
             </div>
           )}
         </Draggable>

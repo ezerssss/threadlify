@@ -11,11 +11,13 @@ import { PostType } from "@/types/post";
 
 interface PropsInteface {
   post: PostType;
+  index: number;
 }
 
 function KanbanCard(props: PropsInteface) {
-  const { post } = props;
+  const { post, index } = props;
   const setActivePost = useKanbanStore((state) => state.setActivePost);
+  const setActivePostIndex = useKanbanStore((state) => state.setActivePostIndex);
   const setIsOpen = useKanbanStore((state) => state.setIsOpen);
 
   const notHighPriorityBadgeColor = post.priority === "medium" ? "default" : "secondary";
@@ -23,6 +25,7 @@ function KanbanCard(props: PropsInteface) {
 
   const handleClick = useCallback(() => {
     setActivePost(post);
+    setActivePostIndex(index);
     setIsOpen(true);
   }, []);
 

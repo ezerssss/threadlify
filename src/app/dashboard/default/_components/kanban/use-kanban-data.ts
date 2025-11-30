@@ -77,6 +77,18 @@ const priorityRank: Record<string, number> = {
   low: 1,
 };
 
+export interface ChangeColumnInterface {
+  source: {
+    droppableId: string;
+    index: number;
+  };
+  destination: {
+    droppableId: string;
+    index: number;
+  };
+  draggableId: string;
+}
+
 function useKanbanData() {
   const { user, userData, idToken } = useUser();
   const [sortBy, setSortBy] = useState<SortByInterface>(defaultSortState);
@@ -177,7 +189,11 @@ function useKanbanData() {
         };
 
         for (const columnId of ["new", "inProgress", "done"]) {
-          const postQuery = query(postsCollectionRef, where("boardColumnId", "==", columnId));
+          const postQuery = query(
+            postsCollectionRef,
+            where("isHidden", "==", false),
+            where("boardColumnId", "==", columnId),
+          );
 
           const snapshot = await getDocs(postQuery);
           const posts: PostType[] = [];
@@ -228,8 +244,9 @@ function useKanbanData() {
       // Only listen to first page to avoid loading entire column
       const postQuery = query(
         postsCollectionRef,
+        where("isHidden", "==", false),
         where("boardColumnId", "==", "new"),
-        where("createdAt", ">", date.toISOString()),
+        where("updatedAt", ">", date.toISOString()),
       );
 
       unsub = onSnapshot(postQuery, (snapshot) => {
@@ -345,10 +362,10 @@ function useKanbanData() {
   }
 
   // eslint-disable-next-line complexity
-  async function handleMoveOnDifferentColumn(result: DropResult) {
+  async function handleMoveOnDifferentColumn(result: ChangeColumnInterface) {
     const { source, destination, draggableId } = result;
 
-    if (!idToken || !destination || source.droppableId === destination.droppableId) {
+    if (!idToken || source.droppableId === destination.droppableId) {
       return;
     }
 
@@ -438,7 +455,7 @@ function useKanbanData() {
       return;
     }
 
-    handleMoveOnDifferentColumn(result);
+    handleMoveOnDifferentColumn({ source, destination, draggableId: result.draggableId });
   }
 
   return {
@@ -448,6 +465,7 @@ function useKanbanData() {
     isLoading,
     sortBy,
     handleSortChange,
+    handleMoveOnDifferentColumn,
   };
 }
 

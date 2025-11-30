@@ -1,10 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { EllipsisVertical } from "lucide-react";
 import z from "zod";
 
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatDuration, formatRelativeTime } from "@/lib/utils";
 import { ScanLogSchema } from "@/types/log";
@@ -49,11 +47,11 @@ export const scanResultsColumns: ColumnDef<z.infer<typeof scanResultColumnSchema
     header: ({ column }) => <DataTableColumnHeader column={column} title="Scan Type" />,
     cell: ({ row }) => <span className="capitalize">{row.original.scanType}</span>,
   },
-  {
-    accessorKey: "postsAnalyzed",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Posts Analyzed" />,
-    cell: ({ row }) => <span>{row.original.postsAnalyzed}</span>,
-  },
+  // {
+  //   accessorKey: "postsAnalyzed",
+  //   header: ({ column }) => <DataTableColumnHeader column={column} title="Posts Analyzed" />,
+  //   cell: ({ row }) => <span>{row.original.postsAnalyzed}</span>,
+  // },
   {
     accessorKey: "relevantPosts",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Relevant Posts" />,

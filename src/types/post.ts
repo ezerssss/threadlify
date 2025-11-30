@@ -14,6 +14,7 @@ export const RecommendedReplySchema = z.object({
 
 export const PostSchema = z.object({
   id: z.string().min(1),
+  isHidden: z.boolean(),
   userId: z.string().min(1),
   author: z.string().min(1),
   title: z.string().min(1),
@@ -24,6 +25,7 @@ export const PostSchema = z.object({
   platform: z.string().min(1),
   postCreatedAt: z.iso.datetime(),
   createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
   boardColumnId: z.string().min(1),
   columnRank: z.string().min(1),
   action: z.string().min(1),

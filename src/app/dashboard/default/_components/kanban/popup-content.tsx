@@ -15,22 +15,32 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import useUser from "@/hooks/use-user";
 import { cn, formatISODate, toastError } from "@/lib/utils";
 import { useKanbanStore } from "@/stores/kanban";
-import { CommentType, PostType } from "@/types/post";
+import { CommentType } from "@/types/post";
 
-import { ShowReasoning } from "./show-reasoning";
+import { StatusSelectButton } from "./status-select-button";
+import { ChangeColumnInterface } from "./use-kanban-data";
+
+interface PropsInterface {
+  handleChangeStatus: (change: ChangeColumnInterface) => Promise<void>;
+}
 
 // eslint-disable-next-line complexity
-function PopUpContent() {
+function PopUpContent(props: PropsInterface) {
+  const { handleChangeStatus } = props;
+
   const { userData } = useUser();
   const isOpen = useKanbanStore((state) => state.isOpen);
   const post = useKanbanStore((state) => state.activePost);
+  const index = useKanbanStore((state) => state.activePostIndex);
   const setIsOpen = useKanbanStore((state) => state.setIsOpen);
   const setActivePost = useKanbanStore((state) => state.setActivePost);
+  const setActivePostIndex = useKanbanStore((state) => state.setActivePostIndex);
   const { height } = useWindowSize();
 
   const handleOpenChange = useCallback((open: boolean) => {
     if (!open) {
       setActivePost(null);
+      setActivePostIndex(null);
     }
 
     setIsOpen(open);
@@ -84,6 +94,26 @@ function PopUpContent() {
     } catch (error) {
       toastError(error);
     }
+  }
+
+  async function onStatusChange(newStatus: string) {
+    if (!post || index === null) {
+      return;
+    }
+
+    const data: ChangeColumnInterface = {
+      source: {
+        droppableId: post.boardColumnId,
+        index,
+      },
+      destination: {
+        droppableId: newStatus,
+        index: 0,
+      },
+      draggableId: post.id,
+    };
+
+    await handleChangeStatus(data);
   }
 
   return (
@@ -142,6 +172,11 @@ function PopUpContent() {
           </div>
 
           <div className="border-accent flex h-full max-w-[30%] min-w-[30%] flex-col space-y-2 border-l">
+            <div className="ml-3 flex items-center justify-end gap-2 text-sm">
+              <p>Status:</p>
+              <StatusSelectButton value={post.boardColumnId} onChange={(status) => onStatusChange(status)} />
+            </div>
+
             <h2 className="ml-3 font-bold">Top Comments</h2>
 
             <div className="scrollbar-thin flex-1 space-y-2 overflow-auto px-3">
