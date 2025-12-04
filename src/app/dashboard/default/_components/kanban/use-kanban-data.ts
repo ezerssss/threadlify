@@ -13,6 +13,7 @@ import { KANBAN_CHANGE_URL } from "@/constants/url";
 import { FIREBASE_COLLECTION_ENUMS } from "@/enums/firebase";
 import useUser from "@/hooks/use-user";
 import { toastError } from "@/lib/utils";
+import { useKanbanStore } from "@/stores/kanban";
 import { KanbanChangeRequestType } from "@/types/kanban";
 import { PostType } from "@/types/post";
 
@@ -122,6 +123,8 @@ function useKanbanData() {
   const [filterBy, setFilterBy] = useState<FilterByInterface>(defaultFilterState);
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<KanbanDataInterface>({ ...defaultData });
+  const setActivePost = useKanbanStore((state) => state.setActivePost);
+  const setActivePostIndex = useKanbanStore((state) => state.setActivePostIndex);
 
   function sortPosts(posts: PostType[], field: string, direction: string): PostType[] {
     const sortedPosts: PostType[] = [...posts];
@@ -422,7 +425,7 @@ function useKanbanData() {
 
       const newArray = arrayMoveImmutable(postIds, source.index, destination.index);
       setData((prev) => ({
-        posts: prev.posts,
+        posts: { ...prev.posts, [post.id]: post },
         columns: {
           ...prev.columns,
           [source.droppableId]: {
@@ -512,7 +515,7 @@ function useKanbanData() {
       destinationPostIds.splice(destinationIndex, 0, movedPostId);
 
       setData((prev) => ({
-        posts: prev.posts,
+        posts: { ...prev.posts, [post.id]: post },
         columns: {
           ...prev.columns,
           [source.droppableId]: {
@@ -525,6 +528,9 @@ function useKanbanData() {
           },
         },
       }));
+
+      setActivePost(post);
+      setActivePostIndex(destinationIndex);
 
       const kanbanChangeRequest: KanbanChangeRequestType = {
         id: post.id,
