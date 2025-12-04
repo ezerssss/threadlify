@@ -57,7 +57,7 @@ function OnboardingPage() {
         const data: GenericAPIResponse = await res.json();
 
         if (data.message === "URL not valid") {
-          setStep(1);
+          setStep(0);
           setIsUrlValid(false);
           throw new Error("We couldn’t reach this URL. Please check that the address is correct and accessible.");
         } else {
@@ -77,20 +77,32 @@ function OnboardingPage() {
         throw new Error("Your are unauthorized to do this action.");
       }
 
-      const { growthStrategy } = await ky
-        .post(GENERATE_STRATEGY_URL, {
-          timeout: 40000,
-          retry: {
-            retryOnTimeout: true,
-          },
-          json: { url },
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        })
-        .json<{ growthStrategy: string }>();
+      const res = await ky.post(GENERATE_STRATEGY_URL, {
+        timeout: 40000,
+        retry: {
+          retryOnTimeout: true,
+        },
+        json: { url },
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+        throwHttpErrors: false,
+      });
 
-      setStrategy(growthStrategy);
+      if (res.status === StatusCodes.OK) {
+        // Fuck you
+        const { growthStrategy } = (await res.json()) as any;
+        setStrategy(growthStrategy);
+      } else {
+        const data: GenericAPIResponse = await res.json();
+        if (data.message === "URL not valid") {
+          setStep(0);
+          setIsUrlValid(false);
+          throw new Error("We couldn’t reach this URL. Please check that the address is correct and accessible.");
+        } else {
+          throw new Error(data.message);
+        }
+      }
     } catch (error) {
       toastError(error);
     } finally {

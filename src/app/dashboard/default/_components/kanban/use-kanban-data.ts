@@ -16,6 +16,7 @@ import { toastError } from "@/lib/utils";
 import { KanbanChangeRequestType } from "@/types/kanban";
 import { PostType } from "@/types/post";
 
+import { ActionFilter, FilterState, PriorityFilter } from "./filter-by";
 import { SortState } from "./sort-by";
 
 interface KanbanColumnInterface {
@@ -71,10 +72,36 @@ const defaultSortState: SortByInterface = {
   },
 };
 
+export interface FilterByInterface {
+  new: FilterState;
+  inProgress: FilterState;
+  done: FilterState;
+}
+
+const defaultFilterState: FilterByInterface = {
+  new: {
+    priority: ["high", "medium", "low"],
+    action: ["engage", "listen"],
+  },
+  inProgress: {
+    priority: ["high", "medium", "low"],
+    action: ["engage", "listen"],
+  },
+  done: {
+    priority: ["high", "medium", "low"],
+    action: ["engage", "listen"],
+  },
+};
+
 const priorityRank: Record<string, number> = {
   high: 3,
   medium: 2,
   low: 1,
+};
+
+const actionRank: Record<string, number> = {
+  engage: 2,
+  listen: 1,
 };
 
 export interface ChangeColumnInterface {
@@ -92,6 +119,7 @@ export interface ChangeColumnInterface {
 function useKanbanData() {
   const { user, userData, idToken } = useUser();
   const [sortBy, setSortBy] = useState<SortByInterface>(defaultSortState);
+  const [filterBy, setFilterBy] = useState<FilterByInterface>(defaultFilterState);
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<KanbanDataInterface>({ ...defaultData });
 
@@ -109,8 +137,14 @@ function useKanbanData() {
           const A = priorityRank[a.priority.toLowerCase()];
           const B = priorityRank[b.priority.toLowerCase()];
 
-          // Sort by post date
+          // Sort by post date or action type
           if (A === B) {
+            if (actionRank[a.action] !== actionRank[b.action]) {
+              const aAction = actionRank[a.action.toLowerCase()];
+              const bAction = actionRank[b.action.toLowerCase()];
+              return direction === "asc" ? aAction - bAction : bAction - aAction;
+            }
+
             const A1 = a.postCreatedAt;
             const B1 = b.postCreatedAt;
 
@@ -150,6 +184,43 @@ function useKanbanData() {
         [columnId]: {
           ...prev.columns[columnId],
           postIds: sortedPostIds,
+        },
+      },
+    }));
+  }
+
+  function filterPosts(posts: PostType[], priorityFilter: PriorityFilter[], actionFilter: ActionFilter[]) {
+    return posts
+      .filter((post) => priorityFilter.includes(post.priority as PriorityFilter))
+      .filter((post) => actionFilter.includes(post.action as ActionFilter));
+  }
+
+  function handleFilterChange(columnId: keyof SortByInterface, value: FilterState) {
+    setFilterBy((prev) => ({
+      ...prev,
+      [columnId]: value,
+    }));
+
+    const posts = [];
+
+    for (const id in data.posts) {
+      const post = data.posts[id];
+
+      if (post.boardColumnId === columnId) posts.push(post);
+    }
+
+    const sortState = sortBy[columnId];
+    const sortedPosts = sortPosts(posts, sortState.field, sortState.direction);
+    const filteredPosts = filterPosts(sortedPosts, value.priority, value.action);
+    const filteredPostIds = filteredPosts.map((post) => post.id);
+
+    setData((prev) => ({
+      ...prev,
+      columns: {
+        ...prev.columns,
+        [columnId]: {
+          ...prev.columns[columnId],
+          postIds: filteredPostIds,
         },
       },
     }));
@@ -206,8 +277,12 @@ function useKanbanData() {
 
           const sortState = defaultSortState[columnId as keyof SortByInterface];
           const sortedPosts = sortPosts(posts, sortState.field, sortState.direction);
-          const sortedPostIds: string[] = sortedPosts.map((post) => post.id);
-          newColumnsData[columnId].postIds = sortedPostIds;
+
+          const filterState = defaultFilterState[columnId as keyof FilterByInterface];
+          const filteredPosts = filterPosts(sortedPosts, filterState.priority, filterState.action);
+
+          const sortedAndFilteredPostIds: string[] = filteredPosts.map((post) => post.id);
+          newColumnsData[columnId].postIds = sortedAndFilteredPostIds;
         }
 
         setData({
@@ -276,7 +351,10 @@ function useKanbanData() {
 
           const mergedNewPosts: PostType[] = mergedPostIds.map((postId) => mergedPosts[postId]);
           const sortedNewPosts: PostType[] = sortPosts(mergedNewPosts, sortBy.new.field, sortBy.new.direction);
-          const sortedNewPostIds: string[] = sortedNewPosts.map((post) => post.id);
+
+          const filteredNewPosts = filterPosts(sortedNewPosts, filterBy.new.priority, filterBy.new.action);
+
+          const sortedAndFilteredNewPostIds: string[] = filteredNewPosts.map((post) => post.id);
 
           return {
             posts: mergedPosts,
@@ -284,7 +362,7 @@ function useKanbanData() {
               ...prev.columns,
               new: {
                 ...prev.columns.new,
-                postIds: sortedNewPostIds,
+                postIds: sortedAndFilteredNewPostIds,
               },
             },
           };
@@ -319,12 +397,22 @@ function useKanbanData() {
       const beforeOffset = isItemGoingDown ? 0 : -1;
       const afterOffset = isItemGoingDown ? 1 : 0;
 
-      const before: string | null =
+      let before: string | null =
         destination.index === 0 ? null : data.posts[postIds[destination.index + beforeOffset]].columnRank;
-      const after: string | null =
+      let after: string | null =
         destination.index + 1 >= postIds.length
           ? null
           : data.posts[postIds[destination.index + afterOffset]].columnRank;
+
+      if (before !== null && after !== null) {
+        if (before === after) {
+          before += "a";
+        }
+
+        if (before > after) {
+          [before, after] = [after, before];
+        }
+      }
 
       const newRank = generateKeyBetween(before, after);
       const post = data.posts[draggableId];
@@ -405,10 +493,14 @@ function useKanbanData() {
           ? null
           : data.posts[destinationPostIds[destinationIndex]].columnRank;
 
-      if (before !== null && after !== null && before > after) {
-        const temp = before;
-        before = after;
-        after = temp;
+      if (before !== null && after !== null) {
+        if (before === after) {
+          before += "a";
+        }
+
+        if (before > after) {
+          [before, after] = [after, before];
+        }
       }
 
       const newRank = generateKeyBetween(before, after);
@@ -474,6 +566,8 @@ function useKanbanData() {
     sortBy,
     handleSortChange,
     handleMoveOnDifferentColumn,
+    filterBy,
+    handleFilterChange,
   };
 }
 

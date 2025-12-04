@@ -10,10 +10,11 @@ import { cn } from "@/lib/utils";
 import { PostType } from "@/types/post";
 
 import EmptyKanban from "./empty";
+import { FilterButton } from "./filter-by";
 import KanbanCard from "./kanban-card";
 import PopUpContent from "./popup-content";
 import { SortByButton } from "./sort-by";
-import useKanbanData, { SortByInterface } from "./use-kanban-data";
+import useKanbanData, { FilterByInterface, SortByInterface } from "./use-kanban-data";
 
 const COLUMN_IDS = ["new", "inProgress", "done"];
 const COLUMN_COLOR: Record<string, string> = { new: "bg-green-500", inProgress: "bg-yellow-500", done: "bg-gray-400" };
@@ -26,6 +27,8 @@ function Kanban() {
     handleOnDragEnd,
     isLoading,
     sortBy,
+    filterBy,
+    handleFilterChange,
     handleSortChange,
     handleMoveOnDifferentColumn,
   } = useKanbanData();
@@ -57,11 +60,17 @@ function Kanban() {
                           <Badge variant="secondary">{data.columns[columnId].postIds.length}</Badge>
                         </div>
 
-                        <SortByButton
-                          value={sortBy[columnId as keyof SortByInterface]}
-                          disabled={isLoading}
-                          onChange={(value) => handleSortChange(columnId as keyof SortByInterface, value)}
-                        />
+                        <div className="flex items-center gap-1">
+                          <SortByButton
+                            value={sortBy[columnId as keyof SortByInterface]}
+                            disabled={isLoading}
+                            onChange={(value) => handleSortChange(columnId as keyof SortByInterface, value)}
+                          />
+                          <FilterButton
+                            value={filterBy[columnId as keyof FilterByInterface]}
+                            onChange={(value) => handleFilterChange(columnId as keyof SortByInterface, value)}
+                          />
+                        </div>
                       </div>
                       <div
                         ref={provided.innerRef}
