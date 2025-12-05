@@ -1,8 +1,10 @@
 import * as z from "zod";
 
 export const CommentSchema = z.object({
+  id: z.string().min(1),
   author: z.string().min(1),
   body: z.string().min(1),
+  url: z.string().min(1),
 });
 
 export type CommentType = z.infer<typeof CommentSchema>;
@@ -11,6 +13,7 @@ export const RecommendedReplySchema = z.object({
   reply: z.string().min(1),
   targetComment: CommentSchema.nullable(),
 });
+export type RecommendedReplyType = z.infer<typeof RecommendedReplySchema>;
 
 export const PostSchema = z.object({
   id: z.string().min(1),
