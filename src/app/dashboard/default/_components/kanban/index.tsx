@@ -31,6 +31,7 @@ function Kanban() {
     handleFilterChange,
     handleSortChange,
     handleMoveOnDifferentColumn,
+    updateSinglePost,
   } = useKanbanData();
 
   if (!userData) {
@@ -88,7 +89,7 @@ function Kanban() {
           </DragDropContext>
         )}
       </div>
-      <PopUpContent handleChangeStatus={handleMoveOnDifferentColumn} />
+      <PopUpContent handleChangeStatus={handleMoveOnDifferentColumn} updateSinglePost={updateSinglePost} />
     </>
   );
 }

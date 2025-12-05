@@ -27,7 +27,7 @@ function KanbanCard(props: PropsInteface) {
     setActivePost(post);
     setActivePostIndex(index);
     setIsOpen(true);
-  }, []);
+  }, [post, index, setActivePost, setActivePostIndex, setIsOpen]);
 
   return (
     <div className="bg-card cursor-grab rounded-md border p-2.5 shadow-xs" onClick={handleClick}>

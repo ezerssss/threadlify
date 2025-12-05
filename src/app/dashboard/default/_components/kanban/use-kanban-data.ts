@@ -126,6 +126,20 @@ function useKanbanData() {
   const setActivePost = useKanbanStore((state) => state.setActivePost);
   const setActivePostIndex = useKanbanStore((state) => state.setActivePostIndex);
 
+  // Haha any
+  function updateSinglePost(postId: string, newData: any) {
+    setData((prev) => ({
+      ...prev,
+      posts: {
+        ...prev.posts,
+        [postId]: {
+          ...prev.posts[postId],
+          ...newData,
+        },
+      },
+    }));
+  }
+
   function sortPosts(posts: PostType[], field: string, direction: string): PostType[] {
     const sortedPosts: PostType[] = [...posts];
 
@@ -574,6 +588,7 @@ function useKanbanData() {
     handleMoveOnDifferentColumn,
     filterBy,
     handleFilterChange,
+    updateSinglePost,
   };
 }
 

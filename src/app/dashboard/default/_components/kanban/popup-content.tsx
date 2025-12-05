@@ -18,10 +18,11 @@ import { ChangeColumnInterface } from "./use-kanban-data";
 
 interface PropsInterface {
   handleChangeStatus: (change: ChangeColumnInterface) => Promise<void>;
+  updateSinglePost: (postId: string, newData: any) => void;
 }
 
 function PopUpContent(props: PropsInterface) {
-  const { handleChangeStatus } = props;
+  const { handleChangeStatus, updateSinglePost } = props;
 
   const { userData } = useUser();
   const isOpen = useKanbanStore((state) => state.isOpen);
@@ -125,12 +126,14 @@ function PopUpContent(props: PropsInterface) {
           </div>
 
           <CommentSection
+            postId={post.id}
             recommendedReply={post.recommendedReply}
             comments={post.topComments}
             boardColumnId={post.boardColumnId}
             onStatusChange={onStatusChange}
             userName={userData.name}
             postUrl={post.url}
+            updateSinglePost={updateSinglePost}
           />
         </div>
       </DialogContent>
