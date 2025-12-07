@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { FirebaseError } from "firebase/app";
 import { AuthErrorCodes } from "firebase/auth";
+import { HTTPError } from "ky";
 import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
 
@@ -48,6 +49,7 @@ export function toastError(error: unknown) {
   console.error(error);
 
   let message = "Something went wrong.";
+  let kyError = false;
 
   if (error instanceof FirebaseError) {
     if (error.code === AuthErrorCodes.INTERNAL_ERROR) {
@@ -59,13 +61,18 @@ export function toastError(error: unknown) {
     } else {
       message = error.message;
     }
+  } else if (error instanceof HTTPError) {
+    kyError = true;
+    error.response.json<{ message: string }>().then(({ message }) => toast.error(message));
   } else if (error instanceof Error) {
     message = error.message;
   } else if (typeof error === "string") {
     message = error;
   }
 
-  toast.error(message);
+  if (!kyError) {
+    toast.error(message);
+  }
 }
 
 export function formatISODate(isoString: string): string {
