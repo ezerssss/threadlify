@@ -116,7 +116,7 @@ function InviteContent(props: InviteContentProps) {
         </CardContent>
 
         <CardFooter>
-          <Button disabled={isLoading} onClick={handleClaim} className="w-full" size="lg">
+          <Button disabled className="w-full" size="lg">
             Processing
           </Button>
         </CardFooter>
