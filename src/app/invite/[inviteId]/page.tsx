@@ -58,7 +58,7 @@ function InviteContent(props: InviteContentProps) {
         </CardContent>
 
         <CardFooter>
-          <Button disabled={isLoading} onClick={() => router.replace("/dashboard")} className="w-full" size="lg">
+          <Button onClick={() => router.replace("/dashboard")} className="w-full" size="lg">
             Go to dashboard
           </Button>
         </CardFooter>
@@ -172,7 +172,7 @@ function InviteContent(props: InviteContentProps) {
         </CardContent>
 
         <CardFooter>
-          <Button disabled={isLoading} onClick={() => router.replace("/dashboard")} className="w-full" size="lg">
+          <Button onClick={() => router.replace("/dashboard")} className="w-full" size="lg">
             Go to dashboard
           </Button>
         </CardFooter>
