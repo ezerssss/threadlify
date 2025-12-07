@@ -1,4 +1,4 @@
-import { Kanban, Fingerprint, ChartBar, Banknote, Gauge, type LucideIcon, User } from "lucide-react";
+import { Kanban, Fingerprint, ChartBar, Banknote, Gauge, type LucideIcon, User, BookUserIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -17,6 +17,7 @@ export interface NavMainItem {
   comingSoon?: boolean;
   newTab?: boolean;
   isNew?: boolean;
+  isManagerOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -39,6 +40,12 @@ export const sidebarItems: NavGroup[] = [
         title: "Profile",
         url: "/dashboard/profile",
         icon: User,
+      },
+      {
+        title: "Managed accounts",
+        url: "/dashboard/manager",
+        isManagerOnly: true,
+        icon: BookUserIcon,
       },
       // {
       //   title: "Stats",

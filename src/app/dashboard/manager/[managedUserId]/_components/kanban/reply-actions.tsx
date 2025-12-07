@@ -1,0 +1,79 @@
+import { useState } from "react";
+
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+
+interface PropsInterface {
+  disabled?: boolean;
+  handleCopy: () => Promise<void>;
+  onRegenerate: (prompt: string) => void;
+}
+
+function ReplyActions({ handleCopy, onRegenerate, disabled }: PropsInterface) {
+  const [showTweakBox, setShowTweakBox] = useState(false);
+  const [tweakText, setTweakText] = useState("");
+  const [error, setError] = useState(false);
+
+  const toggleTweakBox = () => setShowTweakBox((prev) => !prev);
+
+  const handleRegenerateClick = () => {
+    if (!showTweakBox) {
+      toggleTweakBox();
+      return;
+    }
+
+    // Require non-empty text
+    if (tweakText.trim().length === 0) {
+      setError(true);
+
+      // brief shake animation
+      setTimeout(() => setError(false), 400);
+
+      toast.error("Tweak cannot be empty.");
+      return;
+    }
+
+    onRegenerate(tweakText);
+    setShowTweakBox(false);
+    setTweakText("");
+  };
+
+  return (
+    <div className="mt-1 px-3">
+      <div className="flex gap-2">
+        <Button size="sm" className="flex-1" onClick={handleCopy}>
+          Copy and open thread
+        </Button>
+
+        <Button
+          variant={showTweakBox ? "default" : "outline"}
+          size="sm"
+          className="flex-1"
+          onClick={handleRegenerateClick}
+          disabled={disabled}
+        >
+          {disabled && <Spinner />}
+          {showTweakBox ? "Submit tweak" : "Tweak reply"}
+        </Button>
+      </div>
+
+      {showTweakBox && (
+        <div className="mt-2">
+          <Textarea
+            autoFocus
+            placeholder="Describe how you'd like to tweak the reply"
+            value={tweakText}
+            onChange={(e) => setTweakText(e.target.value)}
+            className={cn("transition-all", error && "animate-shake border-red-500")}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default ReplyActions;

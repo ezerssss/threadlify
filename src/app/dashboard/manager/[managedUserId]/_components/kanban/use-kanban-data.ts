@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { USERS_COLLECTION_REF } from "@/constants/firebase";
 import { KANBAN_CHANGE_URL } from "@/constants/url";
 import { FIREBASE_COLLECTION_ENUMS } from "@/enums/firebase";
+import useManagedUser from "@/hooks/use-managed-user";
 import useUser from "@/hooks/use-user";
 import { toastError } from "@/lib/utils";
 import { useKanbanStore } from "@/stores/kanban";
@@ -117,8 +118,9 @@ export interface ChangeColumnInterface {
   draggableId: string;
 }
 
-function useKanbanData() {
-  const { user, userData, idToken } = useUser();
+function useKanbanData(managedUserId: string) {
+  const { idToken } = useUser();
+  const { managedUserData: userData } = useManagedUser(managedUserId);
   const [sortBy, setSortBy] = useState<SortByInterface>(defaultSortState);
   const [filterBy, setFilterBy] = useState<FilterByInterface>(defaultFilterState);
   const [isLoading, setIsLoading] = useState(true);
@@ -251,7 +253,7 @@ function useKanbanData() {
 
   // Initial load - fetch first page for each column
   useEffect(() => {
-    if (!user || !userData?.id) {
+    if (!managedUserId || !userData?.id) {
       return;
     }
 
@@ -259,7 +261,7 @@ function useKanbanData() {
       try {
         setIsLoading(true);
 
-        const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
+        const userDocRef = doc(USERS_COLLECTION_REF, managedUserId);
         const userDoc = await getDoc(userDocRef);
 
         if (!userDoc.exists()) {
@@ -312,17 +314,17 @@ function useKanbanData() {
         setIsLoading(false);
       }
     })();
-  }, [user, userData?.id]);
+  }, [managedUserId, userData?.id]);
 
   // Listener for new posts in "new" column only (real-time updates)
   useEffect(() => {
-    if (!user || !userData?.id) {
+    if (!managedUserId || !userData?.id) {
       return;
     }
 
     let unsub: Unsubscribe;
     (async () => {
-      const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
+      const userDocRef = doc(USERS_COLLECTION_REF, managedUserId);
       const userDoc = await getDoc(userDocRef);
 
       if (!userDoc.exists()) {
@@ -388,7 +390,7 @@ function useKanbanData() {
     })();
 
     return () => unsub();
-  }, [user, userData?.id, sortBy.new.field, sortBy.new.direction]);
+  }, [managedUserId, userData?.id, sortBy.new.field, sortBy.new.direction]);
 
   // eslint-disable-next-line complexity
   async function handleMoveOnSameColumn(result: DropResult) {
@@ -456,7 +458,7 @@ function useKanbanData() {
       };
 
       ky.post(KANBAN_CHANGE_URL, {
-        json: kanbanChangeRequest,
+        json: { ...kanbanChangeRequest, managedUserId },
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
@@ -553,7 +555,7 @@ function useKanbanData() {
       };
 
       ky.post(KANBAN_CHANGE_URL, {
-        json: kanbanChangeRequest,
+        json: { ...kanbanChangeRequest, managedUserId },
         headers: {
           Authorization: `Bearer ${idToken}`,
         },

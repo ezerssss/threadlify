@@ -12,6 +12,8 @@ export default function useUser() {
   const [user, setUser] = useState<User | null>();
   const [isLoading, setIsLoading] = useState(true);
   const [idToken, setIdToken] = useState<string | null>();
+  const [claims, setClaims] = useState<Record<string, any>>({});
+  const [isClaimsLoading, setIsClaimsLoading] = useState(true);
   const [userData, setUserData] = useState<UserDataType | null>();
 
   useEffect(() => {
@@ -58,5 +60,21 @@ export default function useUser() {
     setInterval(getIdToken, REFRESH_JWT_TOKEN_INTERVAL_IN_MS);
   }, [user]);
 
-  return { user, userData, isLoading, idToken };
+  useEffect(() => {
+    setIsClaimsLoading(true);
+    async function getClaims() {
+      if (!user) {
+        return;
+      }
+
+      const tokenResult = await user.getIdTokenResult();
+
+      setClaims(tokenResult.claims);
+      setIsClaimsLoading(false);
+    }
+
+    getClaims();
+  }, [user]);
+
+  return { user, userData, isLoading, idToken, claims, isClaimsLoading };
 }

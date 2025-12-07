@@ -24,6 +24,7 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import useUser from "@/hooks/use-user";
 import { type NavGroup, type NavMainItem } from "@/navigation/sidebar/sidebar-items";
 
 interface NavMainProps {
@@ -143,6 +144,7 @@ const NavItemCollapsed = ({
 export function NavMain({ items }: NavMainProps) {
   const path = usePathname();
   const { state, isMobile } = useSidebar();
+  const { claims } = useUser();
 
   const isItemActive = (url: string, subItems?: NavMainItem["subItems"]) => {
     if (subItems?.length) {
@@ -162,34 +164,47 @@ export function NavMain({ items }: NavMainProps) {
           {group.label && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
           <SidebarGroupContent className="flex flex-col gap-2">
             <SidebarMenu>
-              {group.items.map((item) => {
-                if (state === "collapsed" && !isMobile) {
-                  // If no subItems, just render the button as a link
-                  if (!item.subItems) {
-                    return (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                          asChild
-                          aria-disabled={item.comingSoon}
-                          tooltip={item.title}
-                          isActive={isItemActive(item.url)}
-                        >
-                          <Link href={item.url} target={item.newTab ? "_blank" : undefined}>
-                            {item.icon && <item.icon />}
-                            <span>{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
+              {group.items
+                .filter((item) => {
+                  if (!item.isManagerOnly) {
+                    return true;
                   }
-                  // Otherwise, render the dropdown as before
-                  return <NavItemCollapsed key={item.title} item={item} isActive={isItemActive} />;
-                }
-                // Expanded view
-                return (
-                  <NavItemExpanded key={item.title} item={item} isActive={isItemActive} isSubmenuOpen={isSubmenuOpen} />
-                );
-              })}
+
+                  return !!claims.isManager;
+                })
+                .map((item) => {
+                  if (state === "collapsed" && !isMobile) {
+                    // If no subItems, just render the button as a link
+                    if (!item.subItems) {
+                      return (
+                        <SidebarMenuItem key={item.title}>
+                          <SidebarMenuButton
+                            asChild
+                            aria-disabled={item.comingSoon}
+                            tooltip={item.title}
+                            isActive={isItemActive(item.url)}
+                          >
+                            <Link href={item.url} target={item.newTab ? "_blank" : undefined}>
+                              {item.icon && <item.icon />}
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    }
+                    // Otherwise, render the dropdown as before
+                    return <NavItemCollapsed key={item.title} item={item} isActive={isItemActive} />;
+                  }
+                  // Expanded view
+                  return (
+                    <NavItemExpanded
+                      key={item.title}
+                      item={item}
+                      isActive={isItemActive}
+                      isSubmenuOpen={isSubmenuOpen}
+                    />
+                  );
+                })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
