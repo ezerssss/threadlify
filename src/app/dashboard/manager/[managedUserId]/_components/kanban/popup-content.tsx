@@ -9,7 +9,7 @@ import { siReddit } from "simple-icons";
 import { SimpleIcon } from "@/components/simple-icon";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import useUser from "@/hooks/use-user";
+import useManagedUser from "@/hooks/use-managed-user";
 import { formatISODate } from "@/lib/utils";
 import { useKanbanStore } from "@/stores/kanban";
 
@@ -25,7 +25,7 @@ interface PropsInterface {
 function PopUpContent(props: PropsInterface) {
   const { managedUserId, handleChangeStatus, updateSinglePost } = props;
 
-  const { userData } = useUser();
+  const { managedUserData: userData } = useManagedUser(managedUserId);
   const isOpen = useKanbanStore((state) => state.isOpen);
   const post = useKanbanStore((state) => state.activePost);
   const index = useKanbanStore((state) => state.activePostIndex);
