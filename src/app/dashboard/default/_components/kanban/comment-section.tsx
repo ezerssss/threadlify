@@ -25,6 +25,7 @@ interface PropsInterface {
   updateSinglePost: (postId: string, newData: any) => void;
 }
 
+// eslint-disable-next-line complexity
 function CommentSection(props: PropsInterface) {
   const { recommendedReply, comments, boardColumnId, onStatusChange, userName, postUrl, postId, updateSinglePost } =
     props;
@@ -114,7 +115,7 @@ function CommentSection(props: PropsInterface) {
             <h2 className="ml-3 font-bold">Recommended Reply</h2>
 
             <div className="px-3">
-              {recommendedReply.targetComment && (
+              {recommendedReply.targetComment?.body && recommendedReply.targetComment?.author && (
                 <div className="bg-card relative block max-w-full cursor-default space-y-2 rounded-md border p-2.5 text-sm shadow-xs">
                   <ReadMoreArea lettersLimit={100} className="wrap-anywhere">
                     {recommendedReply.targetComment.body}
