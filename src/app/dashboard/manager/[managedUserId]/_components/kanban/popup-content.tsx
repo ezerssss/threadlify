@@ -122,7 +122,7 @@ function PopUpContent(props: PropsInterface) {
               <h2 className="text-xl font-bold">Insights</h2>
             </div>
             <section className="scrollbar-thin flex-1 overflow-auto pr-5">
-              <p>{post.explanation}</p>
+              <p>{post.insights}</p>
             </section>
           </div>
 
