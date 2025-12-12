@@ -1,3 +1,5 @@
+import { ForwardRefExoticComponent, RefAttributes } from "react";
+
 import ReadMoreArea from "@foxeian/react-read-more";
 import * as LucideIcons from "lucide-react";
 
@@ -22,7 +24,10 @@ export function InsightCard({
   posts,
   onClick,
 }: InsightCardProps) {
-  const Icon = LucideIcons[iconName] ?? LucideIcons.Lightbulb;
+  const Icon =
+    (LucideIcons[iconName] as ForwardRefExoticComponent<
+      Omit<LucideIcons.LucideProps, "ref"> & RefAttributes<SVGSVGElement>
+    >) ?? LucideIcons.Lightbulb;
 
   return (
     <Card

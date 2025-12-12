@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { ForwardRefExoticComponent, RefAttributes, useEffect, useState } from "react";
 
 import Link from "next/link";
 
@@ -57,7 +57,10 @@ export default function InsightModal(props: InsightModalProps) {
     })();
   }, [user, id]);
 
-  const Icon = LucideIcons[iconName] ?? LucideIcons.Lightbulb;
+  const Icon =
+    (LucideIcons[iconName] as ForwardRefExoticComponent<
+      Omit<LucideIcons.LucideProps, "ref"> & RefAttributes<SVGSVGElement>
+    >) ?? LucideIcons.Lightbulb;
 
   // 👉 The selected post that appears on the right panel
   const [activePost, setActivePost] = useState<PostType | null>(null);
