@@ -4,7 +4,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/
 
 export function EmptyObjectives() {
   return (
-    <Empty className="mt-10">
+    <Empty>
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <IconBulbOff />
