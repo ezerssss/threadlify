@@ -15,7 +15,6 @@ import useUser from "@/hooks/use-user";
 import { ScanLogType } from "@/types/log";
 
 import { scanResultsColumns } from "./columns";
-import { recentLeadsData } from "./crm.config";
 
 export function ScanResultsTable() {
   const { user, userData } = useUser();
