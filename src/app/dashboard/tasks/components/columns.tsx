@@ -1,11 +1,10 @@
 import { ColumnDef } from "@tanstack/react-table";
-import z from "zod";
 
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
-import { ActionableTaskSchema } from "@/types/insights";
+import { ActionableObjectivesType } from "@/types/insights";
 
-export const objectivesColumnSchema: ColumnDef<z.infer<typeof ActionableTaskSchema>>[] = [
+export const objectivesColumnSchema: ColumnDef<ActionableObjectivesType>[] = [
   {
     accessorKey: "title",
     header: ({ column }) => <DataTableColumnHeader className="pl-1" column={column} title="Title" />,
