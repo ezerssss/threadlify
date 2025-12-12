@@ -6,9 +6,9 @@ export function EmptyObjectives() {
   return (
     <Empty className="mt-10">
       <EmptyHeader>
-        {/* <EmptyMedia variant="icon">
+        <EmptyMedia variant="icon">
           <IconBulbOff />
-        </EmptyMedia> */}
+        </EmptyMedia>
         <EmptyTitle>No Insights Yet</EmptyTitle>
         <EmptyDescription>
           There are no insights yet. Please wait until data is captured from real user posts.

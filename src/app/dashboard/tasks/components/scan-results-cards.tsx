@@ -62,6 +62,16 @@ export function ScanResultsCards() {
 
   return (
     <>
+      {sortedInsights.length > 0 && (
+        <section className="space-y-1">
+          <h1 className="text-primary text-xl font-bold">Actionable Insights</h1>
+          <p className="text-sm text-gray-500">
+            A curated set of recommendations generated from real user insights, helping you understand what to improve
+            and where to focus next.
+          </p>
+        </section>
+      )}
+
       <div className="flex flex-col gap-4">
         {/* Top Controls */}
         {sortedInsights.length > 0 && (
