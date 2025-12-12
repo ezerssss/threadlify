@@ -31,7 +31,7 @@ export function InsightCard({
 
   return (
     <Card
-      className="bg-muted/30 hover:bg-muted/40 hover:border-primary flex w-full cursor-pointer flex-col gap-2 rounded-xl p-4 shadow-sm transition-all"
+      className="bg-card hover:border-primary flex w-full cursor-pointer flex-col gap-2 rounded-xl p-4 shadow-sm transition-all"
       onClick={onClick}
     >
       <div className="text-muted-foreground flex items-center gap-1 text-xs">

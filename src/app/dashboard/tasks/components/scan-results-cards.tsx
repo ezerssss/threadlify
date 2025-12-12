@@ -73,9 +73,11 @@ export function ScanResultsCards() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="bg-white">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
+              <div className="flex w-full justify-end">
+                <SelectTrigger className="border-0 shadow-none">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+              </div>
 
               <SelectContent>
                 <SelectItem value="posts">Most Referenced</SelectItem>

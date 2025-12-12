@@ -281,6 +281,7 @@ function useKanbanData() {
             postsCollectionRef,
             where("isHidden", "==", false),
             where("boardColumnId", "==", columnId),
+            where("recommendedReply", "!=", null),
           );
 
           const snapshot = await getDocs(postQuery);
@@ -338,6 +339,7 @@ function useKanbanData() {
         postsCollectionRef,
         where("isHidden", "==", false),
         where("boardColumnId", "==", "new"),
+        where("recommendedReply", "!=", null),
         where("createdAt", ">", date.toISOString()),
       );
 
