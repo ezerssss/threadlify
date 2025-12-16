@@ -54,6 +54,7 @@
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.65.0",
     "react-lines-ellipsis": "^0.16.1",
+    "react-markdown": "^10.1.0",
     "react-resizable-panels": "^3.0.6",
     "react-spinners": "^0.17.0",
     "react-use": "^17.6.0",

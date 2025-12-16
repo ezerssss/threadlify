@@ -3,6 +3,7 @@ import { memo, useCallback } from "react";
 import Link from "next/link";
 
 import { CheckCircleIcon, SparkleIcon } from "lucide-react";
+import Markdown from "react-markdown";
 import { useWindowSize } from "react-use";
 import { siReddit } from "simple-icons";
 
@@ -112,7 +113,9 @@ function PopUpContent(props: PropsInterface) {
               <Link href={post.url} target="_blank" className="block w-fit pr-5 text-xl font-bold underline">
                 {post.title}
               </Link>
-              <p className="pr-5 whitespace-pre-wrap">{post.body}</p>
+              <div className="pr-5 whitespace-pre-wrap">
+                <Markdown>{post.body}</Markdown>
+              </div>
             </section>
 
             <hr />
@@ -122,7 +125,7 @@ function PopUpContent(props: PropsInterface) {
               <h2 className="text-xl font-bold">Insights</h2>
             </div>
             <section className="scrollbar-thin flex-1 overflow-auto pr-5">
-              <p>{post.insights}</p>
+              <p className="whitespace-pre-wrap">{post.insights}</p>
             </section>
           </div>
 
