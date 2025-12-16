@@ -25,7 +25,6 @@ interface PropsInterface {
   updateSinglePost: (postId: string, newData: any) => void;
 }
 
-// eslint-disable-next-line complexity
 function CommentSection(props: PropsInterface) {
   const { recommendedReply, comments, boardColumnId, onStatusChange, userName, postUrl, postId, updateSinglePost } =
     props;
@@ -157,7 +156,7 @@ function CommentSection(props: PropsInterface) {
           </section>
         )}
 
-        <section className="flex flex-1 flex-col gap-1">
+        {/* <section className="flex flex-1 flex-col gap-1">
           <h2 className="ml-3 font-bold">Top Comments</h2>
 
           {comments.length < 1 && <p className="mt-1 text-center text-sm italic">No comments</p>}
@@ -177,7 +176,7 @@ function CommentSection(props: PropsInterface) {
               </div>
             ))}
           </div>
-        </section>
+        </section> */}
       </div>
     </div>
   );

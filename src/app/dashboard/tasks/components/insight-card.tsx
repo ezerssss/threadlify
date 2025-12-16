@@ -42,11 +42,11 @@ export function InsightCard({
       <div className="flex-1 space-y-2">
         <h3 className="leading-tight font-semibold">{title}</h3>
 
-        <div className="text-muted-foreground pointer-events-none text-xs">
+        {/* <div className="text-muted-foreground pointer-events-none text-xs">
           <ReadMoreArea lettersLimit={300} expandLabel="See more">
             {description}
           </ReadMoreArea>
-        </div>
+        </div> */}
       </div>
 
       <p className="text-muted-foreground mt-1 text-xs">
