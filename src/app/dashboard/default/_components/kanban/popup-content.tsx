@@ -2,7 +2,7 @@ import { memo, useCallback } from "react";
 
 import Link from "next/link";
 
-import { CheckCircleIcon, SparkleIcon } from "lucide-react";
+import { CheckCircleIcon, ExternalLinkIcon, SparkleIcon } from "lucide-react";
 import Markdown from "react-markdown";
 import { useWindowSize } from "react-use";
 import { siReddit } from "simple-icons";
@@ -92,7 +92,7 @@ function PopUpContent(props: PropsInterface) {
               )}
             </section>
 
-            <section className="flex items-center justify-between pr-3">
+            <section className="flex w-full flex-wrap items-center justify-between pr-3">
               <div className="flex flex-wrap gap-2">
                 <Badge variant={badgeColor} className="h-6 shrink-0 rounded-sm px-1.5 capitalize">
                   {post.priority}
@@ -104,6 +104,13 @@ function PopUpContent(props: PropsInterface) {
 
                 <Badge variant="outline" className="flex h-6 shrink-0 items-center gap-1 rounded-sm px-1.5">
                   <CheckCircleIcon size={12} /> <span>{post.signalType}</span>
+                </Badge>
+
+                <Badge className="gap-1">
+                  <Link className="flex gap-1 p-0" href={post.url} target="_blank">
+                    Open
+                    <ExternalLinkIcon className="h-3 w-3" />
+                  </Link>
                 </Badge>
               </div>
             </section>
