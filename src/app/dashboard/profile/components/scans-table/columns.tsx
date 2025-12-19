@@ -38,11 +38,6 @@ export const scanResultsColumns: ColumnDef<z.infer<typeof scanResultColumnSchema
     enableHiding: false,
   },
   {
-    accessorKey: "platform",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Platform" />,
-    cell: ({ row }) => <span>{row.original.platform}</span>,
-  },
-  {
     accessorKey: "scanType",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Scan Type" />,
     cell: ({ row }) => <span className="capitalize">{row.original.scanType}</span>,

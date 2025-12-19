@@ -7,7 +7,6 @@ export const ScanLogSchema = z.object({
   logType: z.literal("scan"),
   scanType: z.string().min(1),
   userId: z.string().min(1),
-  platform: z.string().min(1),
   postsAnalyzed: z.number().int().nonnegative(),
   relevantPosts: z.number().int().nonnegative(),
   durationMs: z.number().nonnegative(),
