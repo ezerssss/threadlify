@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useUpgradeModalStore } from "@/stores/upgrade";
 
 interface Plan {
   id: string;
@@ -186,7 +187,8 @@ Thank you`,
 }
 
 export default function PremiumUpgradeDialog() {
-  const [open, setOpen] = useState<boolean>(false);
+  const open = useUpgradeModalStore((state) => state.isOpen);
+  const setOpen = useUpgradeModalStore((state) => state.setIsOpen);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   const paypalEmail = "support@threadlify.io"; // Replace with your actual PayPal email
