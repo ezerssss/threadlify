@@ -1,6 +1,5 @@
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 
-import ReadMoreArea from "@foxeian/react-read-more";
 import * as LucideIcons from "lucide-react";
 
 import { Card } from "@/components/ui/card";
@@ -10,20 +9,11 @@ interface InsightCardProps {
   categoryColor: string;
   iconName: keyof typeof LucideIcons;
   title: string;
-  description: string;
   posts: number;
   onClick?: () => void;
 }
 
-export function InsightCard({
-  categoryLabel,
-  categoryColor,
-  iconName,
-  title,
-  description,
-  posts,
-  onClick,
-}: InsightCardProps) {
+export function InsightCard({ categoryLabel, categoryColor, iconName, title, posts, onClick }: InsightCardProps) {
   const Icon =
     (LucideIcons[iconName] as ForwardRefExoticComponent<
       Omit<LucideIcons.LucideProps, "ref"> & RefAttributes<SVGSVGElement>

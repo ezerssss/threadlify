@@ -27,12 +27,24 @@ interface InsightModalProps {
   categoryColor: string;
   categoryLabel: string;
   title: string;
-  description: string;
+  whatTheMarketTellsUs: string;
+  whyItMatters: string;
   specificTasks: string[];
 }
 
 export default function InsightModal(props: InsightModalProps) {
-  const { open, id, onOpenChange, iconName, categoryColor, categoryLabel, title, description, specificTasks } = props;
+  const {
+    open,
+    id,
+    onOpenChange,
+    iconName,
+    categoryColor,
+    categoryLabel,
+    title,
+    whatTheMarketTellsUs,
+    whyItMatters,
+    specificTasks,
+  } = props;
   const { user } = useUser();
 
   const [posts, setPosts] = useState<PostType[]>([]);
@@ -86,12 +98,20 @@ export default function InsightModal(props: InsightModalProps) {
           <div className="flex min-h-0 flex-1">
             {/* ---------------- LEFT PANEL ---------------- */}
             <div className="scrollbar-thin flex h-full flex-1 flex-col overflow-y-auto pr-4">
-              <Accordion type="multiple" defaultValue={["tasks"]} className="space-y-2">
+              <Accordion type="multiple" defaultValue={["what", "tasks"]} className="space-y-2">
+                {/* WHAT THE MARKET TELLS US */}
+                <AccordionItem value="what">
+                  <AccordionTrigger className="ring-0!">What the market is telling us</AccordionTrigger>
+                  <AccordionContent>
+                    <Card className="p-3">
+                      <p className="text-sm whitespace-pre-wrap">{whatTheMarketTellsUs}</p>
+                    </Card>
+                  </AccordionContent>
+                </AccordionItem>
+
                 {/* ACTION ITEMS */}
                 <AccordionItem value="tasks">
-                  <AccordionTrigger disabled className="text-sm font-bold tracking-wide">
-                    ACTION ITEMS
-                  </AccordionTrigger>
+                  <AccordionTrigger className="text-sm font-bold tracking-wide">NEXT ACTIONS</AccordionTrigger>
                   <AccordionContent>
                     <ul className="space-y-2">
                       {(showAllTasks ? specificTasks : specificTasks.slice(0, 6)).map((task, i) => (
@@ -116,10 +136,10 @@ export default function InsightModal(props: InsightModalProps) {
 
                 {/* WHY IT MATTERS */}
                 <AccordionItem value="why">
-                  <AccordionTrigger className="ring-0!">Why does this matter?</AccordionTrigger>
+                  <AccordionTrigger className="ring-0!">Why this matters</AccordionTrigger>
                   <AccordionContent>
                     <Card className="p-3">
-                      <p className="text-sm whitespace-pre-wrap">{description}</p>
+                      <p className="text-sm whitespace-pre-wrap">{whyItMatters}</p>
                     </Card>
                   </AccordionContent>
                 </AccordionItem>

@@ -113,7 +113,6 @@ export function ScanResultsCards() {
                 categoryColor={category?.color || "orange"}
                 iconName={Icon as keyof typeof LucideIcons}
                 title={item.title}
-                description={item.description}
                 posts={item.numPosts}
                 onClick={() => {
                   setCurrentObjective(item);
@@ -151,7 +150,8 @@ export function ScanResultsCards() {
           categoryColor={INSIGHT_CATEGORIES[currentObjective.category].color}
           categoryLabel={INSIGHT_CATEGORIES[currentObjective.category].label}
           title={currentObjective.title}
-          description={currentObjective.description}
+          whatTheMarketTellsUs={currentObjective.whatTheMarketTellsUs}
+          whyItMatters={currentObjective.whyItMatters}
           specificTasks={currentObjective.specificTasks}
         />
       )}
