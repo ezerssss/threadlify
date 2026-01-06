@@ -1,44 +1,32 @@
-import { ReactNode } from "react";
+"use client";
 
-import { cookies } from "next/headers";
+import { ReactNode, useEffect, useState } from "react";
 
 import { AppSidebar } from "@/app/dashboard/_components/sidebar/app-sidebar";
 import ProtectedRouteWrapper from "@/components/protected-route-wrapper";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import {
-  SIDEBAR_VARIANT_VALUES,
-  SIDEBAR_COLLAPSIBLE_VALUES,
-  CONTENT_LAYOUT_VALUES,
-  NAVBAR_STYLE_VALUES,
-  type SidebarVariant,
-  type SidebarCollapsible,
-  type ContentLayout,
-  type NavbarStyle,
-} from "@/types/preferences/layout";
+import type { SidebarVariant, SidebarCollapsible, ContentLayout, NavbarStyle } from "@/types/preferences/layout";
 
-import { AccountSwitcher } from "./_components/sidebar/account-switcher";
-import { LayoutControls } from "./_components/sidebar/layout-controls";
 import { ProgressIndicator } from "./_components/sidebar/progress-indicator";
 import ScanActionButtons from "./_components/sidebar/scan-action-buttons";
-import { ThemeSwitcher } from "./_components/sidebar/theme-switcher";
 
-export default async function Layout({ children }: Readonly<{ children: ReactNode }>) {
-  const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
+export default function Layout({ children }: Readonly<{ children: ReactNode }>) {
+  const [defaultOpen, setDefaultOpen] = useState(true);
 
-  const sidebarVariant = "inset";
-  const sidebarCollapsible = "icon";
-  const contentLayout = "centered";
-  const navbarStyle = "sticky";
+  useEffect(() => {
+    // Read sidebar state from localStorage
+    const storedValue = localStorage.getItem("sidebar_state");
+    if (storedValue === "true" || storedValue === "false") {
+      setDefaultOpen(storedValue === "true");
+    }
+  }, []);
 
-  const layoutPreferences = {
-    contentLayout,
-    variant: sidebarVariant,
-    collapsible: sidebarCollapsible,
-    navbarStyle,
-  };
+  const sidebarVariant: SidebarVariant = "inset";
+  const sidebarCollapsible: SidebarCollapsible = "icon";
+  const contentLayout: ContentLayout = "centered";
+  const navbarStyle: NavbarStyle = "sticky";
 
   return (
     <ProtectedRouteWrapper>
