@@ -7,6 +7,7 @@ import * as LucideIcons from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectItem, SelectContent, SelectValue } from "@/components/ui/select";
+import { UpgradeOverlay } from "@/components/upgrade-overlay";
 import { USERS_COLLECTION_REF } from "@/constants/firebase";
 import { FIREBASE_COLLECTION_ENUMS } from "@/enums/firebase";
 import useUser from "@/hooks/use-user";
@@ -19,7 +20,7 @@ import InsightModal from "./insight-modal";
 import { InsightsSkeleton } from "./insights-skeleton";
 
 export function ScanResultsCards() {
-  const { user } = useUser();
+  const { user, userData } = useUser();
   const [insights, setInsights] = useState<ActionableObjectivesType[]>([]);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<"posts" | "az" | "za">("posts");
@@ -29,9 +30,19 @@ export function ScanResultsCards() {
 
   const PAGE_SIZE = 9;
 
-  // Load from Firestore
+  // Lock content if subscription is free or expired
+  const isSubscriptionLocked = userData?.subscription.plan === "free";
+
+  // Load from Firestore (only if subscription is not locked)
   useEffect(() => {
-    if (!user) return;
+    if (!user || !userData) {
+      return;
+    }
+
+    if (isSubscriptionLocked) {
+      setIsLoading(false);
+      return;
+    }
 
     const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
     const insightsCollection = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.OBJECTIVES_COLLECTION);
@@ -43,7 +54,7 @@ export function ScanResultsCards() {
     });
 
     return () => unsub();
-  }, [user]);
+  }, [user, userData, isSubscriptionLocked]);
 
   // Sorting logic
   const sortedInsights = useMemo(() => {
@@ -65,6 +76,18 @@ export function ScanResultsCards() {
 
   if (isLoading) {
     return <InsightsSkeleton />;
+  }
+
+  // Show skeleton if subscription is locked (even if there's data, to hide old data from expired users)
+  if (isSubscriptionLocked) {
+    return (
+      <UpgradeOverlay
+        title="Upgrade to Access Insights"
+        description="Unlock actionable insights and recommendations generated from real user data. Upgrade your subscription to access this feature and more."
+      >
+        <InsightsSkeleton />
+      </UpgradeOverlay>
+    );
   }
 
   return (

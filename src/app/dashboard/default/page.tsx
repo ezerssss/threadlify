@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import useUser from "@/hooks/use-user";
+
+import { CopilotUpgrade } from "./_components/copilot-upgrade";
 
 const suggestedPrompts = [
   "Which posts deserve my attention today?",
@@ -143,6 +146,7 @@ function getAnswerForQuestion(question: string): string {
 }
 
 function Page() {
+  const { userData } = useUser();
   const [question, setQuestion] = useState("");
   const [result, setResult] = useState<{ question: string; answer: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -176,7 +180,10 @@ function Page() {
     }
   };
 
-  return (
+  // Lock content if subscription is free or expired
+  const isSubscriptionLocked = userData?.subscription.plan === "free" || userData?.subscription.status !== "active";
+
+  const copilotContent = (
     <div className="flex justify-center p-4 pt-12">
       <div className="w-full max-w-3xl">
         <div className="mb-8 text-center">
@@ -263,6 +270,12 @@ function Page() {
       </div>
     </div>
   );
+
+  if (isSubscriptionLocked) {
+    return <CopilotUpgrade>{copilotContent}</CopilotUpgrade>;
+  }
+
+  return copilotContent;
 }
 
 export default Page;

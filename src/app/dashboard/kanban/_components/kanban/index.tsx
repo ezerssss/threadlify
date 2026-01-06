@@ -5,6 +5,7 @@ import { memo } from "react";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 
 import { Badge } from "@/components/ui/badge";
+import { UpgradeOverlay } from "@/components/upgrade-overlay";
 import useUser from "@/hooks/use-user";
 import { cn } from "@/lib/utils";
 import { PostType } from "@/types/post";
@@ -37,6 +38,19 @@ function Kanban() {
 
   if (!userData || isLoading) {
     return <KanbanSkeleton />;
+  }
+
+  // Lock content if subscription is free or expired
+  const isSubscriptionLocked = userData.subscription.plan === "free";
+  if (isSubscriptionLocked) {
+    return (
+      <UpgradeOverlay
+        title="Upgrade to Access Kanban"
+        description="Unlock your kanban board to organize and manage your posts. Upgrade your subscription to access this feature and more."
+      >
+        <KanbanSkeleton />
+      </UpgradeOverlay>
+    );
   }
 
   const isKanbanEmpty = Object.keys(data.posts).length < 1;
@@ -96,8 +110,8 @@ function Kanban() {
 }
 
 interface InnerListPropInterface {
-  posts: PostType[];
-  columnId: string;
+  readonly posts: PostType[];
+  readonly columnId: string;
 }
 
 function InnerList(props: InnerListPropInterface) {

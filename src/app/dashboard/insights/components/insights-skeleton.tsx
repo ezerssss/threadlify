@@ -26,7 +26,7 @@ export function InsightsSkeleton() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }, (_, index) => `skeleton-insight-${index}`).map((key) => (
+          {Array.from({ length: 9 }, (_, index) => `skeleton-insight-${index}`).map((key) => (
             <Card key={key} className="bg-card flex w-full flex-col gap-2 rounded-xl p-4 shadow-sm">
               <div className="flex items-center gap-1">
                 <Skeleton className="h-3 w-3 rounded" />

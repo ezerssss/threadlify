@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 import * as LucideIcons from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectTrigger, SelectItem, SelectContent, SelectValue } from "@/components/ui/select";
+import { UpgradeOverlay } from "@/components/upgrade-overlay";
+import useUser from "@/hooks/use-user";
 
 import { CompetitorCard } from "./competitor-card";
 import { COMPETITOR_CATEGORIES } from "./competitor-categories";
@@ -15,11 +17,21 @@ import { EmptyCompetitors } from "./empty-competitors";
 import { mockCompetitorData } from "./mock-competitor-data";
 
 export function CompetitorTrackingCards() {
+  const { userData } = useUser();
   const [competitors] = useState(mockCompetitorData);
   const [sort, setSort] = useState<"posts" | "az" | "za">("posts");
   const [open, setOpen] = useState(false);
   const [currentCompetitor, setCurrentCompetitor] = useState<(typeof mockCompetitorData)[0] | null>(null);
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  }, []);
+
+  // Lock content if subscription is free or expired
+  const isSubscriptionLocked = userData?.subscription.plan === "free";
 
   // Group by competitor name
   const groupedCompetitors = useMemo(() => {
@@ -57,10 +69,20 @@ export function CompetitorTrackingCards() {
     return sortedGroups;
   }, [competitors, sort]);
 
-  const totalInsights = competitors.length;
-
   if (isLoading) {
     return <CompetitorsSkeleton />;
+  }
+
+  // Show skeleton if subscription is locked (even if there's data, to hide old data from expired users)
+  if (isSubscriptionLocked) {
+    return (
+      <UpgradeOverlay
+        title="Upgrade to Access Competitor Tracking"
+        description="Unlock competitor insights and track what your competitors are doing in the market. Upgrade your subscription to access this feature and more."
+      >
+        <CompetitorsSkeleton />
+      </UpgradeOverlay>
+    );
   }
 
   return (

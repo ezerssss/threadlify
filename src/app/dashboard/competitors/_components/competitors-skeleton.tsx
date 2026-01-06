@@ -27,7 +27,7 @@ export function CompetitorsSkeleton() {
         </div>
 
         <div className="space-y-6">
-          {Array.from({ length: 2 }, (_, groupIndex) => `skeleton-group-${groupIndex}`).map((groupKey) => (
+          {Array.from({ length: 3 }, (_, groupIndex) => `skeleton-group-${groupIndex}`).map((groupKey) => (
             <div key={groupKey} className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
