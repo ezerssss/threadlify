@@ -15,8 +15,6 @@ export default function useHasData() {
 
   useEffect(() => {
     if (!user || !userData?.id) {
-      setIsLoading(false);
-      setHasData(false);
       return;
     }
 

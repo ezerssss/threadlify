@@ -227,7 +227,7 @@ function Page() {
 
   // Lock content if subscription is free or expired
   const isSubscriptionLocked = userData?.subscription.plan === "free";
-  const hasNoData = hasData === false && !isCheckingData;
+  const hasNoData = !hasData && !isCheckingData;
   const isDisabled = !userData || isLoading || isSubscriptionLocked || !question.trim() || hasNoData;
 
   const copilotContent = (
