@@ -45,7 +45,7 @@ function ProtectedRouteWrapper(props: PropsInterface): JSX.Element {
     }
 
     if (pathname === "/onboarding") {
-      router.push("/dashboard/default?showIntro=true");
+      router.push("/dashboard/default");
     }
 
     setIsLoading(false);

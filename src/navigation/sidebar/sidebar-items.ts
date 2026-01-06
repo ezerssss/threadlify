@@ -43,7 +43,7 @@ export const sidebarItems: NavGroup[] = [
       },
       {
         title: "Insights",
-        url: "/dashboard/tasks",
+        url: "/dashboard/insights",
         icon: LightbulbIcon,
       },
       {
@@ -62,17 +62,6 @@ export const sidebarItems: NavGroup[] = [
         isManagerOnly: true,
         icon: BookUserIcon,
       },
-      // {
-      //   title: "Stats",
-      //   url: "/dashboard/crm",
-      //   icon: ChartBar,
-      //   comingSoon: true,
-      // },
-      // {
-      //   title: "Finance",
-      //   url: "/dashboard/finance",
-      //   icon: Banknote,
-      // },
     ],
   },
 ];
