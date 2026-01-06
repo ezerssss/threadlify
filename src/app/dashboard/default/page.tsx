@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 
-import { ArrowRight, BotMessageSquareIcon, RotateCcw, Send } from "lucide-react";
-import Markdown from "react-markdown";
+import ky from "ky";
+import { Mail, Scan } from "lucide-react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { SCAN_REQUEST_URL } from "@/constants/url";
+import useHasData from "@/hooks/use-has-data";
 import useUser from "@/hooks/use-user";
+import { cn, toastError } from "@/lib/utils";
 
+import { CopilotContent } from "./_components/copilot-content";
 import { CopilotUpgrade } from "./_components/copilot-upgrade";
 
 const suggestedPrompts = [
@@ -145,11 +148,18 @@ function getAnswerForQuestion(question: string): string {
   return "I can help you understand which posts need attention, what product objectives to prioritize, market patterns, and actionable recommendations based on recent signals. Try one of the suggested questions above!";
 }
 
+// eslint-disable-next-line complexity
 function Page() {
-  const { userData } = useUser();
+  const { userData, idToken } = useUser();
+  const { hasData, isLoading: isCheckingData } = useHasData();
   const [question, setQuestion] = useState("");
   const [result, setResult] = useState<{ question: string; answer: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+
+  useEffect(() => {
+    setIsScanning(userData?.isScanning ?? false);
+  }, [userData?.isScanning]);
 
   const handleAsk = async () => {
     if (!question.trim()) return;
@@ -180,102 +190,157 @@ function Page() {
     }
   };
 
-  // Lock content if subscription is free or expired
-  const isSubscriptionLocked = userData?.subscription.plan === "free" || userData?.subscription.status !== "active";
+  async function handleScanMarket() {
+    if (!userData) {
+      return;
+    }
 
-  const copilotContent = (
-    <div className="flex justify-center p-4 pt-12">
-      <div className="w-full max-w-3xl">
-        <div className="mb-8 text-center">
-          <div className="mb-4 flex items-center justify-center gap-3">
-            <div className="bg-primary rounded-lg p-3">
-              <BotMessageSquareIcon className="text-primary-foreground h-6 w-6" />
-            </div>
-            <h1 className="text-foreground text-4xl font-bold">Threadlify Copilot</h1>
-          </div>
-          <p className="text-muted-foreground text-lg">Your market intelligence assistant</p>
-        </div>
+    const { subscription } = userData;
+    const remainingScans = subscription.monthlyQuota - subscription.usedThisPeriod;
 
-        {result ? (
-          <div className="space-y-6">
-            <Card className="bg-muted/50 border p-6 shadow-md">
-              <p className="text-muted-foreground mb-2 text-xs font-semibold tracking-wider uppercase">Question</p>
-              <p className="text-foreground flex items-start gap-2 text-2xl font-bold">
-                <ArrowRight className="text-primary mt-1 h-6 w-6 shrink-0" />
-                <span>{result.question}</span>
-              </p>
-            </Card>
+    if (remainingScans < 1) {
+      toastError("You have no scans remaining on your current plan. Please upgrade or purchase additional scans.");
+      return;
+    }
 
-            <Card className="border p-6 shadow-md">
-              <p className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">Answer</p>
+    if (isScanning) {
+      toastError("A scan is currently in progress. Please wait for it to finish before scanning.");
+      return;
+    }
 
-              <div className="max-h-96 overflow-y-auto">
-                <div className="prose prose-sm dark:prose-invert max-w-none [&_h2]:mt-4 [&_h2]:mb-2 [&_h3]:mt-3 [&_h3]:mb-1.5 [&_li]:my-1 [&_ol]:my-2 [&_p]:my-2 [&_ul]:my-2">
-                  <Markdown>{result.answer}</Markdown>
-                </div>
-              </div>
-            </Card>
+    try {
+      setIsScanning(true);
+      if (!idToken) {
+        throw new Error("You are unauthorized to do this action.");
+      }
 
-            <Button
-              onClick={handleReset}
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground h-12 w-full font-semibold"
-            >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Ask Another Question
-            </Button>
-          </div>
-        ) : (
-          <Card className="border p-8 shadow-md">
-            <div className="space-y-6">
-              <div>
-                <label htmlFor="question-input" className="text-foreground mb-3 block text-sm font-semibold">
-                  Ask me anything
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    id="question-input"
-                    placeholder="Ask about relevant posts, what they mean, how to respond, or what to build next."
-                    value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    disabled={isLoading}
-                    className="h-11 flex-1"
-                  />
-                  <Button onClick={handleAsk} disabled={isLoading || !question.trim()} size="lg" className="h-11">
-                    {isLoading ? <Spinner /> : <Send className="h-4 w-4" />}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <p className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
-                  Try asking about:
-                </p>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {suggestedPrompts.map((prompt) => (
-                    <button
-                      key={prompt}
-                      onClick={() => setQuestion(prompt)}
-                      className="bg-muted text-foreground hover:bg-muted/80 border-border rounded-lg border p-3 text-left text-sm font-medium transition-colors"
-                    >
-                      {prompt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Card>
-        )}
-      </div>
-    </div>
-  );
-
-  if (isSubscriptionLocked) {
-    return <CopilotUpgrade>{copilotContent}</CopilotUpgrade>;
+      await ky.post(SCAN_REQUEST_URL, {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+    } catch (error) {
+      toastError(error);
+      setIsScanning(false);
+    }
   }
 
-  return copilotContent;
+  // Lock content if subscription is free or expired
+  const isSubscriptionLocked = userData?.subscription.plan === "free";
+  const hasNoData = hasData === false && !isCheckingData;
+  const isDisabled = !userData || isLoading || isSubscriptionLocked || !question.trim() || hasNoData;
+
+  const copilotContent = (
+    <CopilotContent
+      question={question}
+      setQuestion={setQuestion}
+      result={result}
+      isLoading={isLoading}
+      isDisabled={isDisabled}
+      hasNoData={hasNoData}
+      suggestedPrompts={suggestedPrompts}
+      handleAsk={handleAsk}
+      handleReset={handleReset}
+      handleKeyDown={handleKeyDown}
+    />
+  );
+
+  return (
+    <>
+      {hasNoData && !isSubscriptionLocked && (
+        <Alert className="border-amber-200 bg-amber-50/50">
+          <Scan className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-foreground">Get started with Threadlify</AlertTitle>
+          <AlertDescription className="text-muted-foreground">
+            <div className="space-y-3">
+              <p>
+                Perform a scan to gather data from market conversations, then return here to ask questions about your
+                posts, identify patterns, and get actionable recommendations.
+              </p>
+              <div className="flex items-center gap-2">
+                {(() => {
+                  if (!userData) return null;
+                  const { subscription } = userData;
+                  const remainingScans = subscription.monthlyQuota - subscription.usedThisPeriod;
+                  const isFreeTier = subscription.plan === "free";
+                  const isButtonDisabled = isScanning || !userData || isFreeTier || remainingScans < 1;
+
+                  function getTooltipMessage(): string {
+                    if (isScanning) {
+                      return "Scan in progress...";
+                    }
+
+                    if (isButtonDisabled) {
+                      if (isFreeTier) {
+                        if (remainingScans > 0) {
+                          return "Upgrade to Pro to perform scans";
+                        } else {
+                          return "Upgrade to Pro to get more scans";
+                        }
+                      }
+
+                      // Pro/Enterprise but zero scans
+                      if (remainingScans < 1) {
+                        return "Your scans will reset at the start of your next billing cycle";
+                      }
+                    }
+
+                    // Button is enabled - show action message
+                    return "Click to perform a scan and gather market data";
+                  }
+
+                  const tooltipMessage = getTooltipMessage();
+
+                  return (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Button
+                            onClick={handleScanMarket}
+                            disabled={isButtonDisabled}
+                            size="sm"
+                            className={cn(isScanning && "animate-pulse")}
+                          >
+                            <Scan className="mr-2 h-4 w-4" />
+                            {isScanning ? "Scanning..." : "Perform scan"}
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{tooltipMessage}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })()}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const subject = encodeURIComponent("No Data After Scan - Copilot");
+                    const body = encodeURIComponent(
+                      `Hello Threadlify Support,
+
+I recently upgraded to ${userData?.subscription.plan ?? "pro"} and performed a scan, but I'm still not seeing any data in my Copilot.
+
+Could you please help me troubleshoot this issue?
+
+Thank you!`,
+                    );
+                    globalThis.location.href = `mailto:support@threadlify.io?subject=${subject}&body=${body}`;
+                  }}
+                >
+                  <Mail className="mr-2 h-4 w-4" />
+                  Contact Support
+                </Button>
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isSubscriptionLocked ? <CopilotUpgrade>{copilotContent}</CopilotUpgrade> : copilotContent}
+    </>
+  );
 }
 
 export default Page;

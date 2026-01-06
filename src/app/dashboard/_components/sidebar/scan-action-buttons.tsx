@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 
 import ky from "ky";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { SCAN_REQUEST_URL } from "@/constants/url";
 import useUser from "@/hooks/use-user";
 import { cn, toastError } from "@/lib/utils";
@@ -25,8 +25,37 @@ function ScanActionButtons() {
   }
 
   const { subscription, isScanning } = userData;
-  const { monthlyQuota, usedThisPeriod } = subscription;
+  const { monthlyQuota, usedThisPeriod, plan } = subscription;
   const remainingScans = monthlyQuota - usedThisPeriod;
+  const isFreeTier = plan === "free";
+  const isButtonDisabled = isDisabled || remainingScans < 1 || isFreeTier;
+
+  // Determine tooltip message based on button state
+  function getTooltipMessage(): string {
+    if (isScanning) {
+      return "Scan in progress...";
+    }
+
+    if (isButtonDisabled) {
+      if (isFreeTier) {
+        if (remainingScans > 0) {
+          return "Upgrade to Pro to perform scans";
+        } else {
+          return "Upgrade to Pro to get more scans";
+        }
+      }
+
+      // Pro/Enterprise but zero scans
+      if (remainingScans < 1) {
+        return "Your scans will reset at the start of your next billing cycle";
+      }
+    }
+
+    // Button is enabled - show action message
+    return "Click to perform a scan and gather market data";
+  }
+
+  const tooltipMessage = getTooltipMessage();
 
   async function handleScanMarket() {
     if (remainingScans < 1) {
@@ -59,13 +88,22 @@ function ScanActionButtons() {
     <>
       <p className="text-sm">Scans left: {remainingScans}</p>
       <GetMoreScans />
-      <Button
-        disabled={isDisabled || remainingScans < 1}
-        onClick={handleScanMarket}
-        className={cn(isScanning && "animate-pulse")}
-      >
-        {isScanning ? "Scan in progress" : "Perform scan"}
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span>
+            <Button
+              disabled={isButtonDisabled}
+              onClick={handleScanMarket}
+              className={cn(isScanning && "animate-pulse")}
+            >
+              {isScanning ? "Scan in progress" : "Perform scan"}
+            </Button>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{tooltipMessage}</p>
+        </TooltipContent>
+      </Tooltip>
     </>
   );
 }

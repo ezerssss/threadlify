@@ -26,94 +26,6 @@ interface Plan {
   features: string[];
 }
 
-interface ManualEmailProps {
-  selectedPlanData: Plan;
-  paypalEmail: string;
-}
-
-function ManualEmail(props: ManualEmailProps) {
-  const { selectedPlanData, paypalEmail } = props;
-  const [copied, setCopied] = useState<boolean>(false);
-
-  async function handleCopyEmail() {
-    try {
-      await navigator.clipboard.writeText(paypalEmail);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
-  }
-
-  return (
-    <div className="space-y-4 border-t px-2 pt-4">
-      <h4 className="text-sm font-semibold text-gray-900">How to upgrade to {selectedPlanData.name}:</h4>
-
-      <div className="space-y-4 text-sm text-gray-600">
-        <div className="flex gap-3">
-          <div className="bg-primary text-primary-foreground flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold">
-            1
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-gray-900">Send payment via PayPal</p>
-            <p className="mt-1 mb-2 text-xs">
-              Amount:{" "}
-              <span className="text-primary font-semibold">
-                {selectedPlanData.price}
-                {selectedPlanData.period}
-              </span>
-            </p>
-            <div className="flex items-center gap-2 rounded border border-gray-200 bg-gray-50 p-2">
-              <Mail className="h-4 w-4 flex-shrink-0 text-gray-400" />
-              <code className="flex-1 text-xs break-all">{paypalEmail}</code>
-              <button
-                onClick={handleCopyEmail}
-                className="flex-shrink-0 rounded p-1 transition-colors hover:bg-gray-200"
-                title="Copy email"
-              >
-                {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4 text-gray-600" />}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-3">
-          <div className="bg-primary text-primary-foreground flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold">
-            2
-          </div>
-          <div>
-            <p className="font-medium text-gray-900">Email us your receipt</p>
-            <p className="mt-1 text-xs">
-              Send your PayPal receipt and the email you used for registration to{" "}
-              <span className="text-primary font-medium">{paypalEmail}</span>
-            </p>
-            <p className="mt-1 text-xs text-gray-500">
-              Include: Plan name ({selectedPlanData.name}), your registered email, and payment screenshot
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-3">
-          <div className="bg-primary text-primary-foreground flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold">
-            3
-          </div>
-          <div>
-            <p className="font-medium text-gray-900">Get activated within 24 hours</p>
-            <p className="mt-1 text-xs">We&apos;ll upgrade your account and send you a confirmation email</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-3">
-        <p className="text-xs text-amber-800">
-          <span className="font-semibold">Important:</span> Make sure to specify which plan you&apos;re purchasing and
-          include your registered email address so we can activate your account correctly.
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function FallbackInstructions() {
   return (
     <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700">
@@ -198,13 +110,12 @@ export default function PremiumUpgradeDialog() {
       id: "professional",
       name: "Professional",
       icon: Zap,
-      originalPrice: "$100",
-      price: "$50",
+      price: "$100",
       period: "/month",
       scans: "20 scans per month",
-      badge: "Limited Offer",
-      badgeColor: "bg-green-500",
-      features: ["All core features included", "Email support", "Discount available for the first 20 customers only"],
+      badge: "Most Popular",
+      badgeColor: "bg-primary",
+      features: ["All core features included", "Email support"],
     },
     {
       id: "enterprise",
@@ -213,8 +124,8 @@ export default function PremiumUpgradeDialog() {
       price: "Custom",
       period: "",
       scans: "Unlimited scans",
-      badge: "Most Popular",
-      badgeColor: "bg-primary",
+      badge: "Best Value",
+      badgeColor: "bg-green-500",
       features: ["All features included in the Professional plan", "Unlimited monthly scans", "Priority support"],
     },
   ];
@@ -274,9 +185,6 @@ export default function PremiumUpgradeDialog() {
                     </div>
 
                     <div className="mb-3">
-                      {plan.originalPrice && (
-                        <span className="mr-2 text-sm text-gray-400 line-through">{plan.originalPrice}</span>
-                      )}
                       <span className="text-primary text-3xl font-bold">{plan.price}</span>
                       <span className="text-sm text-gray-600">{plan.period}</span>
                     </div>
@@ -285,7 +193,7 @@ export default function PremiumUpgradeDialog() {
 
                     <ul className="space-y-1.5">
                       {plan.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-xs text-gray-600">
+                        <li key={feature} className="flex items-start gap-2 text-xs text-gray-600">
                           <Check className="text-primary mt-0.5 h-3 w-3 flex-shrink-0" />
                           <span>{feature}</span>
                         </li>

@@ -30,7 +30,7 @@ function ScanActionButtons(props: PropsInterface) {
   }
 
   const { subscription, isScanning } = userData;
-  const { monthlyQuota, usedThisPeriod } = subscription;
+  const { monthlyQuota, usedThisPeriod, plan } = subscription;
   const remainingScans = monthlyQuota - usedThisPeriod;
 
   async function handleScanMarket() {
@@ -63,7 +63,7 @@ function ScanActionButtons(props: PropsInterface) {
 
   return (
     <Button
-      disabled={isDisabled || remainingScans < 1}
+      disabled={isDisabled || remainingScans < 1 || plan === "free"}
       onClick={handleScanMarket}
       className={cn(isScanning && "animate-pulse")}
     >
