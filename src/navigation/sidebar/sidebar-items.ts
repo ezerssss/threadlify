@@ -1,4 +1,4 @@
-import { Kanban, type LucideIcon, User, BookUserIcon, LightbulbIcon, BotMessageSquareIcon } from "lucide-react";
+import { Kanban, type LucideIcon, User, BookUserIcon, LightbulbIcon, BotMessageSquareIcon, Eye } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -45,6 +45,11 @@ export const sidebarItems: NavGroup[] = [
         title: "Insights",
         url: "/dashboard/tasks",
         icon: LightbulbIcon,
+      },
+      {
+        title: "Competitors",
+        url: "/dashboard/competitors",
+        icon: Eye,
       },
       {
         title: "Profile",

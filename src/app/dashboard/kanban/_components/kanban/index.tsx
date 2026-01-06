@@ -12,6 +12,7 @@ import { PostType } from "@/types/post";
 import EmptyKanban from "./empty";
 import { FilterButton } from "./filter-by";
 import KanbanCard from "./kanban-card";
+import KanbanSkeleton from "./kanban-skeleton";
 import PopUpContent from "./popup-content";
 import { SortByButton } from "./sort-by";
 import useKanbanData, { FilterByInterface, SortByInterface } from "./use-kanban-data";
@@ -34,8 +35,8 @@ function Kanban() {
     updateSinglePost,
   } = useKanbanData();
 
-  if (!userData) {
-    return null;
+  if (!userData || isLoading) {
+    return <KanbanSkeleton />;
   }
 
   const isKanbanEmpty = Object.keys(data.posts).length < 1;
@@ -43,9 +44,9 @@ function Kanban() {
   return (
     <>
       <div className="relative">
-        {!isLoading && isKanbanEmpty && <EmptyKanban />}
+        {isKanbanEmpty && <EmptyKanban />}
 
-        {!isLoading && !isKanbanEmpty && (
+        {!isKanbanEmpty && (
           <DragDropContext onDragEnd={handleOnDragEnd}>
             <div className="grid h-full min-w-[800px] auto-rows-fr grid-cols-3 gap-4">
               {COLUMN_IDS.map((columnId) => (

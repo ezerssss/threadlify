@@ -16,6 +16,7 @@ import { EmptyObjectives } from "./empty-objectives";
 import { InsightCard } from "./insight-card";
 import { INSIGHT_CATEGORIES } from "./insight-categories";
 import InsightModal from "./insight-modal";
+import { InsightsSkeleton } from "./insights-skeleton";
 
 export function ScanResultsCards() {
   const { user } = useUser();
@@ -24,6 +25,7 @@ export function ScanResultsCards() {
   const [sort, setSort] = useState<"posts" | "az" | "za">("posts");
   const [open, setOpen] = useState(false);
   const [currentObjective, setCurrentObjective] = useState<ActionableObjectivesType | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const PAGE_SIZE = 9;
 
@@ -37,6 +39,7 @@ export function ScanResultsCards() {
     const unsub = onSnapshot(insightsCollection, (snapshot) => {
       const data: ActionableObjectivesType[] = snapshot.docs.map((doc) => doc.data() as ActionableObjectivesType);
       setInsights(data);
+      setIsLoading(false);
     });
 
     return () => unsub();
@@ -59,6 +62,10 @@ export function ScanResultsCards() {
   }, [page, sortedInsights]);
 
   const totalPages = Math.ceil(sortedInsights.length / PAGE_SIZE);
+
+  if (isLoading) {
+    return <InsightsSkeleton />;
+  }
 
   return (
     <>
