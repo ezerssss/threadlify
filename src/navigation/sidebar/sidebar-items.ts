@@ -1,4 +1,4 @@
-import { Kanban, type LucideIcon, User, BookUserIcon, LightbulbIcon } from "lucide-react";
+import { Kanban, type LucideIcon, User, BookUserIcon, LightbulbIcon, BotMessageSquareIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -32,8 +32,13 @@ export const sidebarItems: NavGroup[] = [
     label: "Dashboards",
     items: [
       {
-        title: "Kanban",
+        title: "Assistant",
         url: "/dashboard/default",
+        icon: BotMessageSquareIcon,
+      },
+      {
+        title: "Kanban",
+        url: "/dashboard/kanban",
         icon: Kanban,
       },
       {
