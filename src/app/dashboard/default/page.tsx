@@ -148,7 +148,6 @@ function getAnswerForQuestion(question: string): string {
   return "I can help you understand which posts need attention, what product objectives to prioritize, market patterns, and actionable recommendations based on recent signals. Try one of the suggested questions above!";
 }
 
-// eslint-disable-next-line complexity
 function Page() {
   const { userData, idToken } = useUser();
   const { hasData, isLoading: isCheckingData } = useHasData();
@@ -228,7 +227,7 @@ function Page() {
   // Lock content if subscription is free or expired
   const isSubscriptionLocked = userData?.subscription.plan === "free";
   const hasNoData = !hasData && !isCheckingData;
-  const isDisabled = !userData || isLoading || isSubscriptionLocked || !question.trim() || hasNoData;
+  const isDisabled = !userData || isLoading || isSubscriptionLocked || hasNoData;
 
   const copilotContent = (
     <CopilotContent

@@ -130,7 +130,12 @@ export function CopilotContent({
                       </TooltipContent>
                     </Tooltip>
                   ) : (
-                    <Button onClick={handleAsk} disabled={isDisabled} size="lg" className="h-11">
+                    <Button
+                      onClick={handleAsk}
+                      disabled={isDisabled || question.trim().length < 1}
+                      size="lg"
+                      className="h-11"
+                    >
                       {isLoading ? <Spinner /> : <Send className="h-4 w-4" />}
                     </Button>
                   )}
