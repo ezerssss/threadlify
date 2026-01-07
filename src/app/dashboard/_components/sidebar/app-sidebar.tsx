@@ -23,7 +23,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-0">
+            <SidebarMenuButton asChild className="hover:bg-transparent! data-[slot=sidebar-menu-button]:!p-0">
               <Link href="/dashboard/default">
                 <Image src="/images/logo-orange.png" alt="logo" height={40} width={40} />
                 <span className="text-primary text-base font-semibold">threadlify</span>
