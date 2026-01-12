@@ -8,6 +8,7 @@ import { Mail, Scan } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { WorkInProgressOverlay } from "@/components/work-in-progress-overlay";
 import { SCAN_REQUEST_URL } from "@/constants/url";
 import useHasData from "@/hooks/use-has-data";
 import useUser from "@/hooks/use-user";
@@ -337,7 +338,12 @@ Thank you!`,
         </Alert>
       )}
 
-      {isSubscriptionLocked ? <CopilotUpgrade>{copilotContent}</CopilotUpgrade> : copilotContent}
+      <WorkInProgressOverlay
+        title="Threadlify Copilot - Work in Progress"
+        description="Our AI-powered assistant is currently under development. We're working hard to bring you intelligent insights about your market conversations, posts, and actionable recommendations. Check back soon!"
+      >
+        {isSubscriptionLocked ? <CopilotUpgrade>{copilotContent}</CopilotUpgrade> : copilotContent}
+      </WorkInProgressOverlay>
     </>
   );
 }
