@@ -342,7 +342,8 @@ Thank you!`,
         title="Threadlify Copilot - Work in Progress"
         description="Our AI-powered assistant is currently under development. We're working hard to bring you intelligent insights about your market conversations, posts, and actionable recommendations. Check back soon!"
       >
-        {isSubscriptionLocked ? <CopilotUpgrade>{copilotContent}</CopilotUpgrade> : copilotContent}
+        {copilotContent}
+        {/* {isSubscriptionLocked ? <CopilotUpgrade>{copilotContent}</CopilotUpgrade> : copilotContent} */}
       </WorkInProgressOverlay>
     </>
   );
