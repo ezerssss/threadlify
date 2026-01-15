@@ -31,14 +31,14 @@ export const sidebarItems: NavGroup[] = [
     id: 1,
     label: "Dashboards",
     items: [
-      {
-        title: "Assistant",
-        url: "/dashboard/default",
-        icon: BotMessageSquareIcon,
-      },
+      // {
+      //   title: "Assistant",
+      //   url: "/dashboard/copilot",
+      //   icon: BotMessageSquareIcon,
+      // },
       {
         title: "Kanban",
-        url: "/dashboard/kanban",
+        url: "/dashboard/default",
         icon: Kanban,
       },
       {
@@ -46,11 +46,11 @@ export const sidebarItems: NavGroup[] = [
         url: "/dashboard/insights",
         icon: LightbulbIcon,
       },
-      {
-        title: "Competitors",
-        url: "/dashboard/competitors",
-        icon: Eye,
-      },
+      // {
+      //   title: "Competitors",
+      //   url: "/dashboard/competitors",
+      //   icon: Eye,
+      // },
       {
         title: "Profile",
         url: "/dashboard/profile",
