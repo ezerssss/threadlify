@@ -25,12 +25,14 @@ export default function EditProfileDialog({
   profile,
   strategy,
   keywords,
+  maxScrapeRecencyInMonths,
   onSave,
   isLoading,
 }: {
   profile: { name: string; description: string; audience: string };
   strategy: string;
   keywords: string[];
+  maxScrapeRecencyInMonths: number;
   onSave?: (data: EditUserProfileType) => Promise<void>;
   isLoading: boolean;
 }) {
@@ -44,6 +46,7 @@ export default function EditProfileDialog({
       audience: profile.audience,
       growthStrategy: strategy,
       keywords,
+      maxScrapeRecencyInMonths,
     },
     disabled: isLoading,
   });
@@ -115,6 +118,14 @@ export default function EditProfileDialog({
                 <Textarea {...form.register("growthStrategy")} />
                 {form.formState.errors.growthStrategy && (
                   <p className="text-xs text-red-500">Growth strategy is required.</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Max Scrape Recency (Months)</Label>
+                <Input type="number" min={1} {...form.register("maxScrapeRecencyInMonths", { valueAsNumber: true })} />
+                {form.formState.errors.maxScrapeRecencyInMonths && (
+                  <p className="text-xs text-red-500">Must be a positive number.</p>
                 )}
               </div>
             </div>

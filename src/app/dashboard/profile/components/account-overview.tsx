@@ -29,7 +29,7 @@ export function AccountOverview() {
     return <AccountOverViewSkeleton />;
   }
 
-  const { name, url, profile, strategy, subscription, totalScans } = userData;
+  const { name, url, profile, strategy, subscription, totalScans, maxScrapeRecencyInMonths } = userData;
   const { description, audience, keywords } = profile;
   const { monthlyQuota, usedThisPeriod } = subscription;
   const remainingScans = monthlyQuota - usedThisPeriod;
@@ -75,6 +75,7 @@ export function AccountOverview() {
             profile={{ name, description, audience }}
             keywords={keywords}
             strategy={strategy}
+            maxScrapeRecencyInMonths={maxScrapeRecencyInMonths}
             onSave={handleSaveEdit}
           />
         </CardAction>
@@ -128,6 +129,20 @@ export function AccountOverview() {
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Total lifetime scans</span>
               <span className="font-medium tabular-nums">{totalScans}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground flex items-center gap-1">
+                Max scrape recency
+                <Tooltip>
+                  <TooltipTrigger>
+                    <InfoIcon size="14" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Only scrape posts from the last {maxScrapeRecencyInMonths} month(s).</p>
+                  </TooltipContent>
+                </Tooltip>
+              </span>
+              <span className="font-medium tabular-nums">{maxScrapeRecencyInMonths} month(s)</span>
             </div>
           </div>
         </div>

@@ -29,6 +29,8 @@ export const UserDataSchema = z.object({
   totalAICalls: z.number().nonnegative(),
   totalScans: z.number().nonnegative(),
 
+  maxScrapeRecencyInMonths: z.number().positive(),
+
   subscription: SubscriptionSchema,
 
   createdAt: z.iso.datetime(),
@@ -56,6 +58,7 @@ export const EditUserProfileSchema = z.object({
   audience: z.string().min(1),
   keywords: z.string().min(1).array().min(1),
   growthStrategy: z.string().min(1),
+  maxScrapeRecencyInMonths: z.number().positive(),
 });
 
 export type EditUserProfileType = z.infer<typeof EditUserProfileSchema>;
