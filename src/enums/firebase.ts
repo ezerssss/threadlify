@@ -1,7 +1,13 @@
 export enum FIREBASE_COLLECTION_ENUMS {
   USERS_COLLECTION = "users",
+  SCRAPERS_COLLECTION = "scrapers",
+  SUBSCRIBERS_COLLECTION = "subscribers",
   POSTS_COLLECTION = "posts",
   OBJECTIVES_COLLECTION = "objectives",
   LOGS_COLLECTION = "logs",
   INVITES_COLLECTION = "invites",
+}
+
+export enum FIREBASE_DOCUMENT_ENUMS {
+  REDDIT_SCRAPER_DOCUMENT = "reddit",
 }

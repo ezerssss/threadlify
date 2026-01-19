@@ -5,8 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 
 import ky from "ky";
-import { EditIcon, InfoIcon, LinkIcon } from "lucide-react";
-import { siFacebook, siReddit, siX } from "simple-icons";
+import { InfoIcon, LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { parse } from "tldts";
 
@@ -19,6 +18,7 @@ import { toastError } from "@/lib/utils";
 import { EditUserProfileType } from "@/types/user";
 
 import EditProfileDialog from "./edit-profile-dialog";
+import ManageSubredditsDialog from "./manage-subreddits-dialog";
 import { AccountOverViewSkeleton } from "./skeleton/account-overview-skeleton";
 
 export function AccountOverview() {
@@ -64,21 +64,26 @@ export function AccountOverview() {
 
   return (
     <Card className="overflow-hidden shadow-xs">
-      <CardHeader className="items-center">
-        <CardTitle>My Profile</CardTitle>
+      <CardHeader className="flex flex-col items-start gap-3">
+        <div className="flex w-full items-end justify-between">
+          <CardTitle>My Profile</CardTitle>
+
+          <CardAction className="flex items-center gap-2">
+            <ManageSubredditsDialog />
+            <EditProfileDialog
+              isLoading={isLoading}
+              profile={{ name, description, audience }}
+              keywords={keywords}
+              strategy={strategy}
+              maxScrapeRecencyInMonths={maxScrapeRecencyInMonths}
+              onSave={handleSaveEdit}
+            />
+          </CardAction>
+        </div>
+
         <CardDescription>
           Your auto-generated profile, growth strategy, and other relevant information in one view.
         </CardDescription>
-        <CardAction className="flex items-center gap-2">
-          <EditProfileDialog
-            isLoading={isLoading}
-            profile={{ name, description, audience }}
-            keywords={keywords}
-            strategy={strategy}
-            maxScrapeRecencyInMonths={maxScrapeRecencyInMonths}
-            onSave={handleSaveEdit}
-          />
-        </CardAction>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

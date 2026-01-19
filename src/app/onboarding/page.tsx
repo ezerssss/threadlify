@@ -47,6 +47,7 @@ function OnboardingPage() {
 
       const res = await ky.post(ONBOARDING_URL, {
         json: { url, strategy },
+        timeout: 40000,
         headers: {
           Authorization: `Bearer ${idToken}`,
         },

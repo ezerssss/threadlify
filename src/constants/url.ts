@@ -14,3 +14,5 @@ export const EDIT_PROFILE_URL = `${BACKEND_BASE_URL}/user/edit`;
 export const TWEAK_REPLY_URL = `${BACKEND_BASE_URL}/reply/tweak`;
 
 export const ACCEPT_INVITE_URL = `${BACKEND_BASE_URL}/invite/accept`;
+
+export const UPDATE_SUBREDDITS_URL = `${BACKEND_BASE_URL}/user/subreddits`;
