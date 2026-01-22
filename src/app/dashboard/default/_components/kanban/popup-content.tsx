@@ -1,15 +1,17 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useState } from "react";
 
 import Link from "next/link";
 
-import { CheckCircleIcon, ExternalLinkIcon, SparkleIcon } from "lucide-react";
+import { CheckCircleIcon, ExternalLinkIcon, SparkleIcon, Trash2Icon } from "lucide-react";
 import Markdown from "react-markdown";
 import { useWindowSize } from "react-use";
 import { siReddit } from "simple-icons";
 
 import { SimpleIcon } from "@/components/simple-icon";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
 import useUser from "@/hooks/use-user";
 import { formatISODate } from "@/lib/utils";
 import { useKanbanStore } from "@/stores/kanban";
@@ -20,12 +22,14 @@ import { ChangeColumnInterface } from "./use-kanban-data";
 interface PropsInterface {
   handleChangeStatus: (change: ChangeColumnInterface) => Promise<void>;
   updateSinglePost: (postId: string, newData: any) => void;
+  handleTrashDrop: (postId: string) => Promise<void>;
 }
 
 function PopUpContent(props: PropsInterface) {
-  const { handleChangeStatus, updateSinglePost } = props;
+  const { handleChangeStatus, updateSinglePost, handleTrashDrop } = props;
 
   const { userData } = useUser();
+  const [isTrashing, setIsTrashing] = useState(false);
   const isOpen = useKanbanStore((state) => state.isOpen);
   const post = useKanbanStore((state) => state.activePost);
   const index = useKanbanStore((state) => state.activePostIndex);
@@ -64,6 +68,22 @@ function PopUpContent(props: PropsInterface) {
     };
 
     await handleChangeStatus(data);
+  }
+
+  async function handleMarkAsNotRelevant() {
+    if (!post || isTrashing) {
+      return;
+    }
+
+    setIsTrashing(true);
+    try {
+      await handleTrashDrop(post.id);
+      setIsOpen(false);
+      setActivePost(null);
+      setActivePostIndex(null);
+    } finally {
+      setIsTrashing(false);
+    }
   }
 
   if (!post || !userData) {
@@ -113,6 +133,25 @@ function PopUpContent(props: PropsInterface) {
                   </Link>
                 </Badge>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleMarkAsNotRelevant}
+                disabled={isTrashing}
+                className="h-8 gap-1.5 text-xs text-gray-600 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:bg-red-950/20 dark:hover:text-red-400"
+              >
+                {isTrashing ? (
+                  <>
+                    <Spinner className="h-3.5 w-3.5" />
+                    Removing...
+                  </>
+                ) : (
+                  <>
+                    <Trash2Icon className="h-3.5 w-3.5" />
+                    Not relevant
+                  </>
+                )}
+              </Button>
             </section>
 
             <section className="scrollbar-thin flex-2 space-y-2 overflow-auto">

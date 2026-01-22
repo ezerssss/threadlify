@@ -9,7 +9,7 @@ import ky from "ky";
 import { toast } from "sonner";
 
 import { USERS_COLLECTION_REF } from "@/constants/firebase";
-import { KANBAN_CHANGE_URL } from "@/constants/url";
+import { KANBAN_CHANGE_URL, KANBAN_TRASH_URL } from "@/constants/url";
 import { FIREBASE_COLLECTION_ENUMS } from "@/enums/firebase";
 import useUser from "@/hooks/use-user";
 import { toastError } from "@/lib/utils";
@@ -565,10 +565,66 @@ function useKanbanData() {
     }
   }
 
+  async function handleTrashDrop(postId: string) {
+    if (!idToken) {
+      return;
+    }
+
+    try {
+      // Remove post from local state - defer to next frame to ensure drag library cleanup completes
+      setData((prev) => {
+        const post = prev.posts[postId];
+        if (!post) {
+          return prev;
+        }
+
+        const sourceColumnId = post.boardColumnId;
+        const sourcePostIds = [...prev.columns[sourceColumnId].postIds];
+        const sourceIndex = sourcePostIds.findIndex((id) => id === postId);
+
+        if (sourceIndex === -1) {
+          return prev;
+        }
+
+        sourcePostIds.splice(sourceIndex, 1);
+
+        return {
+          ...prev,
+          columns: {
+            ...prev.columns,
+            [sourceColumnId]: {
+              ...prev.columns[sourceColumnId],
+              postIds: sourcePostIds,
+            },
+          },
+        };
+      });
+
+      // Call backend to train the server
+      await ky.post(KANBAN_TRASH_URL, {
+        json: { id: postId },
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+    } catch (error) {
+      toastError(error);
+      // Revert the local state change on error
+      // Note: In a production app, you might want to restore the post to its original position
+    }
+  }
+
   function handleOnDragEnd(result: DropResult) {
     const { source, destination } = result;
 
+    // If no destination, drag was cancelled - just return
     if (!destination) {
+      return;
+    }
+
+    // Check if dropped in trash
+    if (destination.droppableId === "trash") {
+      handleTrashDrop(result.draggableId);
       return;
     }
 
@@ -591,6 +647,7 @@ function useKanbanData() {
     filterBy,
     handleFilterChange,
     updateSinglePost,
+    handleTrashDrop,
   };
 }
 

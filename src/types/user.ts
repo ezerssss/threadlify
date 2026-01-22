@@ -19,6 +19,7 @@ export const UserDataSchema = z.object({
     extendedContext: z.string().min(1),
   }),
   strategy: z.string().min(1),
+  irrelevanceContext: z.string(),
 
   onboardingStatus: OnboardingStatusEnum,
   isInitialFetchDone: z.boolean(),
