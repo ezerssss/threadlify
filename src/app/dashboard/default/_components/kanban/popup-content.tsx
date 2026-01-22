@@ -138,16 +138,16 @@ function PopUpContent(props: PropsInterface) {
                 size="sm"
                 onClick={handleMarkAsNotRelevant}
                 disabled={isTrashing}
-                className="h-8 gap-1.5 text-xs text-gray-600 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:bg-red-950/20 dark:hover:text-red-400"
+                className="h-6 gap-1.5 text-xs text-gray-600 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:bg-red-950/20 dark:hover:text-red-400"
               >
                 {isTrashing ? (
                   <>
-                    <Spinner className="h-3.5 w-3.5" />
+                    <Spinner className="h-3! w-3!" />
                     Removing...
                   </>
                 ) : (
                   <>
-                    <Trash2Icon className="h-3.5 w-3.5" />
+                    <Trash2Icon className="h-3! w-3!" />
                     Not relevant
                   </>
                 )}
