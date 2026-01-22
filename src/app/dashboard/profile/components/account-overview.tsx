@@ -1,43 +1,98 @@
+/* eslint-disable max-lines */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Link from "next/link";
 
 import ky from "ky";
-import { InfoIcon, LinkIcon } from "lucide-react";
+import { EditIcon, InfoIcon, LinkIcon, PlusIcon, SaveIcon, TrashIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { parse } from "tldts";
 
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { EDIT_PROFILE_URL } from "@/constants/url";
 import useUser from "@/hooks/use-user";
 import { toastError } from "@/lib/utils";
 import { EditUserProfileType } from "@/types/user";
 
-import EditProfileDialog from "./edit-profile-dialog";
 import ManageSubredditsDialog from "./manage-subreddits-dialog";
 import { AccountOverViewSkeleton } from "./skeleton/account-overview-skeleton";
 
+// eslint-disable-next-line complexity
 export function AccountOverview() {
   const { userData, idToken } = useUser();
   const [isLoading, setIsLoading] = useState(false);
+  const [editingTab, setEditingTab] = useState<string | null>(null);
+  const [formData, setFormData] = useState<EditUserProfileType>({
+    name: "",
+    description: "",
+    audience: "",
+    growthStrategy: "",
+    replyTone: "",
+    keywords: [],
+    maxScrapeRecencyInMonths: 1,
+  });
+  const [editData, setEditData] = useState<EditUserProfileType>({
+    name: "",
+    description: "",
+    audience: "",
+    growthStrategy: "",
+    replyTone: "",
+    keywords: [],
+    maxScrapeRecencyInMonths: 1,
+  });
+  const originalDataRef = useRef<EditUserProfileType | null>(null);
+
+  // Sync form data with userData when it changes
+  useEffect(() => {
+    if (userData?.profile) {
+      const { name, profile, strategy, replyTone, maxScrapeRecencyInMonths } = userData;
+      const { description, audience, keywords } = profile;
+      const initialData: EditUserProfileType = {
+        name,
+        description,
+        audience,
+        growthStrategy: strategy,
+        replyTone,
+        keywords: [...keywords],
+        maxScrapeRecencyInMonths,
+      };
+      setFormData(initialData);
+      originalDataRef.current = initialData;
+    }
+  }, [userData]);
 
   if (!userData?.profile) {
     return <AccountOverViewSkeleton />;
   }
 
-  const { name, url, profile, strategy, subscription, totalScans, maxScrapeRecencyInMonths } = userData;
-  const { description, audience, keywords } = profile;
+  const { name, url, subscription, totalScans, maxScrapeRecencyInMonths } = userData;
   const { monthlyQuota, usedThisPeriod } = subscription;
   const remainingScans = monthlyQuota - usedThisPeriod;
 
   const parsedUrl = parse(url).domain;
 
-  async function handleSaveEdit(newUserData: EditUserProfileType) {
-    if (isLoading) {
+  function handleEdit(tab: string) {
+    setEditData({ ...formData });
+    setEditingTab(tab);
+  }
+
+  function handleCancel() {
+    setFormData({ ...(originalDataRef.current ?? formData) });
+    setEditingTab(null);
+  }
+
+  async function handleSave() {
+    if (isLoading || !editingTab) {
       return;
     }
 
@@ -48,13 +103,17 @@ export function AccountOverview() {
       }
 
       await ky.post(EDIT_PROFILE_URL, {
-        json: newUserData,
+        json: editData,
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
       });
 
       toast.success("Successfully updated profile.");
+      // Update form data and original data ref after successful save
+      setFormData({ ...editData });
+      originalDataRef.current = { ...editData };
+      setEditingTab(null);
     } catch (error) {
       toastError(error);
     } finally {
@@ -62,92 +121,391 @@ export function AccountOverview() {
     }
   }
 
+  function updateEditField<K extends keyof EditUserProfileType>(field: K, value: EditUserProfileType[K]) {
+    setEditData((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function addKeyword() {
+    updateEditField("keywords", [...editData.keywords, ""]);
+  }
+
+  function updateKeyword(index: number, value: string) {
+    const updated = [...editData.keywords];
+    updated[index] = value;
+    updateEditField("keywords", updated);
+  }
+
+  function removeKeyword(index: number) {
+    updateEditField(
+      "keywords",
+      editData.keywords.filter((_, i) => i !== index),
+    );
+  }
+
   return (
     <Card className="overflow-hidden shadow-xs">
       <CardHeader className="flex flex-col items-start gap-3">
         <div className="flex w-full items-end justify-between">
           <CardTitle>My Profile</CardTitle>
-
-          <CardAction className="flex items-center gap-2">
-            <ManageSubredditsDialog />
-            <EditProfileDialog
-              isLoading={isLoading}
-              profile={{ name, description, audience }}
-              keywords={keywords}
-              strategy={strategy}
-              maxScrapeRecencyInMonths={maxScrapeRecencyInMonths}
-              onSave={handleSaveEdit}
-            />
-          </CardAction>
+          <ManageSubredditsDialog />
         </div>
-
         <CardDescription>
           Your auto-generated profile, growth strategy, and other relevant information in one view.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="bg-primary text-primary-foreground relative w-full space-y-2 overflow-hidden rounded-xl p-4 perspective-distant">
-            <div className="space-y-1">
-              <p className="font-bold">{name}</p>
-              <p className="text-sm text-pretty">{profile.description}</p>
-            </div>
-            <Separator />
-            <div className="space-y-1">
-              <p className="font-bold">Audience</p>
-              <p className="text-sm text-pretty">{audience}</p>
-            </div>
-            <Separator />
-            <div className="space-y-1">
-              <p className="font-bold">Growth Strategy</p>
-              <p className="text-sm text-pretty">{strategy}</p>
-            </div>
-          </div>
-
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Website URL</span>
-              <Link href={url} target="_blank" className="flex items-center gap-1 font-medium tabular-nums">
-                <LinkIcon size={14} className="text-muted-foreground" />
+        <div className="space-y-6">
+          {/* Header Section */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <h3 className="mb-2 text-xl font-semibold">{name}</h3>
+              <Link
+                href={url}
+                target="_blank"
+                className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
+              >
+                <LinkIcon size={14} />
                 {parsedUrl}
               </Link>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Monthly scan limit</span>
-              <span className="font-medium tabular-nums">{monthlyQuota}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground flex items-center gap-1">
-                Remaining scans
+          </div>
+
+          <Separator />
+
+          {/* Tabs for Editing */}
+          <Tabs defaultValue="description" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger
+                value="description"
+                disabled={isLoading || editingTab !== null}
+                className="data-[state=active]:bg-white"
+              >
+                Description
+              </TabsTrigger>
+              <TabsTrigger
+                value="audience"
+                disabled={isLoading || editingTab !== null}
+                className="data-[state=active]:bg-white"
+              >
+                Audience
+              </TabsTrigger>
+              <TabsTrigger
+                value="strategy"
+                disabled={isLoading || editingTab !== null}
+                className="data-[state=active]:bg-white"
+              >
+                Growth Strategy
+              </TabsTrigger>
+              <TabsTrigger
+                value="replyTone"
+                disabled={isLoading || editingTab !== null}
+                className="data-[state=active]:bg-white"
+              >
+                Reply Tone
+              </TabsTrigger>
+              <TabsTrigger
+                value="keywords"
+                disabled={isLoading || editingTab !== null}
+                className="data-[state=active]:bg-white"
+              >
+                Keywords
+              </TabsTrigger>
+              <TabsTrigger
+                value="recency"
+                disabled={isLoading || editingTab !== null}
+                className="data-[state=active]:bg-white"
+              >
+                Max Recency
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="description" className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Description</Label>
+                  {editingTab === "description" ? (
+                    <div className="flex gap-2">
+                      <Button onClick={handleCancel} variant="outline" size="sm" disabled={isLoading}>
+                        <XIcon className="mr-2 size-4" />
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSave} size="sm" disabled={isLoading}>
+                        <SaveIcon className="mr-2 size-4" />
+                        Save
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button onClick={() => handleEdit("description")} variant="outline" size="sm">
+                      <EditIcon className="mr-2 size-4" />
+                      Edit
+                    </Button>
+                  )}
+                </div>
+                {editingTab === "description" ? (
+                  <Textarea
+                    autoFocus
+                    value={editData.description}
+                    onChange={(e) => updateEditField("description", e.target.value)}
+                    rows={6}
+                  />
+                ) : (
+                  <p className="text-sm whitespace-pre-wrap">{formData.description}</p>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="audience" className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Audience</Label>
+                  {editingTab === "audience" ? (
+                    <div className="flex gap-2">
+                      <Button onClick={handleCancel} variant="outline" size="sm" disabled={isLoading}>
+                        <XIcon className="mr-2 size-4" />
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSave} size="sm" disabled={isLoading}>
+                        <SaveIcon className="mr-2 size-4" />
+                        Save
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button onClick={() => handleEdit("audience")} variant="outline" size="sm">
+                      <EditIcon className="mr-2 size-4" />
+                      Edit
+                    </Button>
+                  )}
+                </div>
+                {editingTab === "audience" ? (
+                  <Textarea
+                    autoFocus
+                    value={editData.audience}
+                    onChange={(e) => updateEditField("audience", e.target.value)}
+                    rows={6}
+                  />
+                ) : (
+                  <p className="text-sm whitespace-pre-wrap">{formData.audience}</p>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="strategy" className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Growth Strategy</Label>
+                  {editingTab === "strategy" ? (
+                    <div className="flex gap-2">
+                      <Button onClick={handleCancel} variant="outline" size="sm" disabled={isLoading}>
+                        <XIcon className="mr-2 size-4" />
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSave} size="sm" disabled={isLoading}>
+                        <SaveIcon className="mr-2 size-4" />
+                        Save
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button onClick={() => handleEdit("strategy")} variant="outline" size="sm">
+                      <EditIcon className="mr-2 size-4" />
+                      Edit
+                    </Button>
+                  )}
+                </div>
+                {editingTab === "strategy" ? (
+                  <Textarea
+                    autoFocus
+                    value={editData.growthStrategy}
+                    onChange={(e) => updateEditField("growthStrategy", e.target.value)}
+                    rows={6}
+                  />
+                ) : (
+                  <p className="text-sm whitespace-pre-wrap">{formData.growthStrategy}</p>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="replyTone" className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Reply Tone</Label>
+                  {editingTab === "replyTone" ? (
+                    <div className="flex gap-2">
+                      <Button onClick={handleCancel} variant="outline" size="sm" disabled={isLoading}>
+                        <XIcon className="mr-2 size-4" />
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSave} size="sm" disabled={isLoading}>
+                        <SaveIcon className="mr-2 size-4" />
+                        Save
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button onClick={() => handleEdit("replyTone")} variant="outline" size="sm">
+                      <EditIcon className="mr-2 size-4" />
+                      Edit
+                    </Button>
+                  )}
+                </div>
+                {editingTab === "replyTone" ? (
+                  <Textarea
+                    autoFocus
+                    value={editData.replyTone}
+                    onChange={(e) => updateEditField("replyTone", e.target.value)}
+                    placeholder="e.g. Professional and friendly, with a touch of humor"
+                    rows={6}
+                  />
+                ) : (
+                  <p className="text-sm whitespace-pre-wrap">{formData.replyTone}</p>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="keywords" className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Keywords</Label>
+                  {editingTab === "keywords" ? (
+                    <div className="flex gap-2">
+                      <Button onClick={handleCancel} variant="outline" size="sm" disabled={isLoading}>
+                        <XIcon className="mr-2 size-4" />
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSave} size="sm" disabled={isLoading}>
+                        <SaveIcon className="mr-2 size-4" />
+                        Save
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button onClick={() => handleEdit("keywords")} variant="outline" size="sm">
+                      <EditIcon className="mr-2 size-4" />
+                      Edit
+                    </Button>
+                  )}
+                </div>
+                {editingTab === "keywords" && (
+                  <Button onClick={addKeyword} variant="outline" size="sm" disabled={isLoading}>
+                    <PlusIcon className="mr-2 size-4" />
+                    Add Keyword
+                  </Button>
+                )}
+                {editingTab === "keywords" ? (
+                  <div className="space-y-2">
+                    {editData.keywords.map((keyword, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          value={keyword}
+                          placeholder="e.g. marketing tips"
+                          onChange={(e) => updateKeyword(index, e.target.value)}
+                        />
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => removeKeyword(index)}
+                          className="bg-destructive text-white"
+                        >
+                          <TrashIcon className="size-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {formData.keywords.map((keyword, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {keyword}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="recency" className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Max Scrape Recency (Months)</Label>
+                  {editingTab === "recency" ? (
+                    <div className="flex gap-2">
+                      <Button onClick={handleCancel} variant="outline" size="sm" disabled={isLoading}>
+                        <XIcon className="mr-2 size-4" />
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSave} size="sm" disabled={isLoading}>
+                        <SaveIcon className="mr-2 size-4" />
+                        Save
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button onClick={() => handleEdit("recency")} variant="outline" size="sm">
+                      <EditIcon className="mr-2 size-4" />
+                      Edit
+                    </Button>
+                  )}
+                </div>
+                {editingTab === "recency" ? (
+                  <Input
+                    autoFocus
+                    type="number"
+                    min={1}
+                    value={editData.maxScrapeRecencyInMonths}
+                    onChange={(e) => updateEditField("maxScrapeRecencyInMonths", Number(e.target.value))}
+                  />
+                ) : (
+                  <p className="text-sm">{formData.maxScrapeRecencyInMonths} month(s)</p>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <Separator />
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-foreground text-xs">Monthly limit</span>
                 <Tooltip>
                   <TooltipTrigger>
-                    <InfoIcon size="14" />
+                    <InfoIcon size={12} className="text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Your monthly scan quota</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <p className="text-lg font-semibold tabular-nums">{monthlyQuota}</p>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-foreground text-xs">Remaining</span>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <InfoIcon size={12} className="text-muted-foreground" />
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Scans reset at the start of each billing cycle while your paid plan is active.</p>
                   </TooltipContent>
                 </Tooltip>
-              </span>
-
-              <span className="font-medium tabular-nums">{remainingScans}</span>
+              </div>
+              <p className="text-lg font-semibold tabular-nums">{remainingScans}</p>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Total lifetime scans</span>
-              <span className="font-medium tabular-nums">{totalScans}</span>
+            <div className="space-y-1">
+              <span className="text-muted-foreground text-xs">Total scans</span>
+              <p className="text-lg font-semibold tabular-nums">{totalScans}</p>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground flex items-center gap-1">
-                Max scrape recency
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-foreground text-xs">Max recency</span>
                 <Tooltip>
                   <TooltipTrigger>
-                    <InfoIcon size="14" />
+                    <InfoIcon size={12} className="text-muted-foreground" />
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Only scrape posts from the last {maxScrapeRecencyInMonths} month(s).</p>
                   </TooltipContent>
                 </Tooltip>
-              </span>
-              <span className="font-medium tabular-nums">{maxScrapeRecencyInMonths} month(s)</span>
+              </div>
+              <p className="text-lg font-semibold tabular-nums">{maxScrapeRecencyInMonths} mo</p>
             </div>
           </div>
         </div>

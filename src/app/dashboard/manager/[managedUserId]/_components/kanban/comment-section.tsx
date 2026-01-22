@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import ReadMoreArea from "@foxeian/react-read-more";
 import ky from "ky";
-import { CopyIcon } from "lucide-react";
+import { CopyIcon, InfoIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { TWEAK_REPLY_URL } from "@/constants/url";
@@ -165,6 +165,15 @@ function CommentSection(props: PropsInterface) {
             />
           </section>
         )}
+
+        <div className="px-3">
+          <div className="bg-muted/30 flex items-start gap-2 rounded-md border p-2.5">
+            <InfoIcon size={14} className="text-muted-foreground mt-0.5 shrink-0" />
+            <p className="text-muted-foreground text-xs">
+              You can customize your reply tone for future replies in your profile settings.
+            </p>
+          </div>
+        </div>
 
         {/* <section className="flex flex-1 flex-col gap-1">
           <h2 className="ml-3 font-bold">Top Comments</h2>

@@ -20,6 +20,7 @@ export const UserDataSchema = z.object({
   }),
   strategy: z.string().min(1),
   irrelevanceContext: z.string(),
+  replyTone: z.string().min(1),
 
   onboardingStatus: OnboardingStatusEnum,
   isInitialFetchDone: z.boolean(),
@@ -59,6 +60,7 @@ export const EditUserProfileSchema = z.object({
   audience: z.string().min(1),
   keywords: z.string().min(1).array().min(1),
   growthStrategy: z.string().min(1),
+  replyTone: z.string().min(1),
   maxScrapeRecencyInMonths: z.number().positive(),
 });
 
