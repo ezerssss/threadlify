@@ -5,11 +5,12 @@ import ky from "ky";
 import { CopyIcon, InfoIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { TWEAK_REPLY_URL } from "@/constants/url";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { TWEAK_DM_URL, TWEAK_REPLY_URL } from "@/constants/url";
 import useUser from "@/hooks/use-user";
 import { cn, toastError } from "@/lib/utils";
 import { useKanbanStore } from "@/stores/kanban";
-import { CommentType, RecommendedReplyType } from "@/types/post";
+import { CommentType, RecommendedDMType, RecommendedReplyType } from "@/types/post";
 
 import ReplyActions from "./reply-actions";
 import { StatusSelectButton } from "./status-select-button";
@@ -18,6 +19,7 @@ interface PropsInterface {
   managedUserId: string;
   postId: string;
   recommendedReply: RecommendedReplyType | null;
+  recommendedDM: RecommendedDMType | null;
   comments: CommentType[];
   boardColumnId: string;
   onStatusChange: (newStatus: string) => Promise<void>;
@@ -26,10 +28,12 @@ interface PropsInterface {
   updateSinglePost: (postId: string, newData: any) => void;
 }
 
+// eslint-disable-next-line complexity
 function CommentSection(props: PropsInterface) {
   const {
     managedUserId,
     recommendedReply,
+    recommendedDM,
     comments,
     boardColumnId,
     onStatusChange,
@@ -42,6 +46,7 @@ function CommentSection(props: PropsInterface) {
 
   const { idToken, userData } = useUser();
   const [isLoading, setIsLoading] = useState(false);
+  const [isDMLoading, setIsDMLoading] = useState(false);
 
   async function handleCopy(redirect: boolean = true) {
     if (!recommendedReply) {
@@ -111,6 +116,68 @@ function CommentSection(props: PropsInterface) {
     }
   }
 
+  async function handleDMCopy() {
+    if (!recommendedDM) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(recommendedDM.dm);
+      toast.success("Copied to clipboard.");
+    } catch (error) {
+      toastError(error);
+    }
+  }
+
+  async function handleDMTweak(tweak: string, postId: string) {
+    if (isDMLoading || !userData) {
+      return;
+    }
+
+    const { subscription } = userData;
+    const isUserFreeOrNotActive = subscription.plan === "free" || subscription.status !== "active";
+    if (isUserFreeOrNotActive) {
+      toast.error("You can't tweak a DM on the free plan. Upgrade your plan to access this feature.");
+      return;
+    }
+
+    try {
+      setIsDMLoading(true);
+      const { tweakedDM } = await ky
+        .post(TWEAK_DM_URL, {
+          timeout: 40000,
+          json: { postId, tweak, managedUserId },
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        })
+        .json<{ tweakedDM: RecommendedDMType }>();
+
+      setActivePost((prev) => {
+        if (prev === null) {
+          return null;
+        }
+
+        if (postId !== prev.id) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          recommendedDM: tweakedDM,
+        };
+      });
+
+      updateSinglePost(postId, { recommendedDM: tweakedDM });
+
+      toast.success("Successfully tweaked DM.");
+    } catch (error) {
+      toastError(error);
+    } finally {
+      setIsDMLoading(false);
+    }
+  }
+
   return (
     <div className="border-accent flex h-full max-w-[30%] min-w-[30%] flex-col space-y-1 border-l">
       <div className="ml-3 flex items-center justify-end gap-2 text-sm">
@@ -118,9 +185,18 @@ function CommentSection(props: PropsInterface) {
         <StatusSelectButton value={boardColumnId} onChange={(status) => onStatusChange(status)} />
       </div>
 
-      <div className="scrollbar-thin flex grow flex-col space-y-6 overflow-auto">
+      <div className="scrollbar-thin flex grow flex-col space-y-4 overflow-auto">
+        <div className="mt-2 px-3">
+          <div className="bg-muted/30 flex items-start gap-2 rounded-md border p-2.5">
+            <InfoIcon size={14} className="text-muted-foreground mt-0.5 shrink-0" />
+            <p className="text-muted-foreground text-xs">
+              You can customize your reply tone for future replies in your profile settings.
+            </p>
+          </div>
+        </div>
+
         {recommendedReply?.reply && (
-          <section className="flex flex-1 flex-col gap-1">
+          <section className="-mt-2 flex flex-1 flex-col gap-1">
             <h2 className="ml-3 font-bold">Recommended Reply</h2>
 
             <div className="px-3">
@@ -166,14 +242,39 @@ function CommentSection(props: PropsInterface) {
           </section>
         )}
 
-        <div className="px-3">
-          <div className="bg-muted/30 flex items-start gap-2 rounded-md border p-2.5">
-            <InfoIcon size={14} className="text-muted-foreground mt-0.5 shrink-0" />
-            <p className="text-muted-foreground text-xs">
-              You can customize your reply tone for future replies in your profile settings.
-            </p>
-          </div>
-        </div>
+        {recommendedDM?.dm && (
+          <section className="flex flex-1 flex-col gap-1">
+            <div className="ml-3 flex items-center gap-2">
+              <h2 className="font-bold">Recommended DM</h2>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoIcon size={14} className="text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>This DM is always sent to the post author, not to commenters.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
+            <div className="px-3">
+              <div className={cn("relative", isDMLoading && "animate-pulse")}>
+                <div className="border-primary bg-card z-20 block flex max-w-full cursor-default items-end justify-between space-y-2 rounded-md border p-2.5 text-sm shadow-xs">
+                  <p className="flex-1">{recommendedDM.dm}</p>
+
+                  <CopyIcon className="cursor-pointer" size={14} onClick={handleDMCopy} />
+                </div>
+              </div>
+            </div>
+
+            <ReplyActions
+              copyButtonText="Copy message"
+              tweakButtonText="Tweak DM"
+              disabled={isDMLoading}
+              handleCopy={handleDMCopy}
+              onRegenerate={(tweak) => handleDMTweak(tweak, postId)}
+            />
+          </section>
+        )}
 
         {/* <section className="flex flex-1 flex-col gap-1">
           <h2 className="ml-3 font-bold">Top Comments</h2>

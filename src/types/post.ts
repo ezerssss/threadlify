@@ -15,6 +15,11 @@ export const RecommendedReplySchema = z.object({
 });
 export type RecommendedReplyType = z.infer<typeof RecommendedReplySchema>;
 
+export const RecommendedDMSchema = z.object({
+  dm: z.string().min(1),
+});
+export type RecommendedDMType = z.infer<typeof RecommendedDMSchema>;
+
 export const PostSchema = z.object({
   id: z.string().min(1),
   isHidden: z.boolean(),
@@ -37,6 +42,7 @@ export const PostSchema = z.object({
   reasoning: z.string().array(),
   priority: z.string().min(1),
   recommendedReply: RecommendedReplySchema.nullable(),
+  recommendedDM: RecommendedDMSchema.nullable(),
 });
 
 export type PostType = z.infer<typeof PostSchema>;

@@ -11,9 +11,17 @@ interface PropsInterface {
   disabled?: boolean;
   handleCopy: () => Promise<void>;
   onRegenerate: (prompt: string) => void;
+  copyButtonText?: string;
+  tweakButtonText?: string;
 }
 
-function ReplyActions({ handleCopy, onRegenerate, disabled }: PropsInterface) {
+function ReplyActions({
+  handleCopy,
+  onRegenerate,
+  disabled,
+  copyButtonText = "Copy and open thread",
+  tweakButtonText = "Tweak reply",
+}: PropsInterface) {
   const [showTweakBox, setShowTweakBox] = useState(false);
   const [tweakText, setTweakText] = useState("");
   const [error, setError] = useState(false);
@@ -46,7 +54,7 @@ function ReplyActions({ handleCopy, onRegenerate, disabled }: PropsInterface) {
     <div className="mt-1 px-3">
       <div className="flex gap-2">
         <Button size="sm" className="flex-1" onClick={handleCopy}>
-          Copy and open thread
+          {copyButtonText}
         </Button>
 
         <Button
@@ -57,7 +65,7 @@ function ReplyActions({ handleCopy, onRegenerate, disabled }: PropsInterface) {
           disabled={disabled}
         >
           {disabled && <Spinner />}
-          {showTweakBox ? "Submit tweak" : "Tweak reply"}
+          {showTweakBox ? "Submit tweak" : tweakButtonText}
         </Button>
       </div>
 
@@ -65,7 +73,7 @@ function ReplyActions({ handleCopy, onRegenerate, disabled }: PropsInterface) {
         <div className="mt-2">
           <Textarea
             autoFocus
-            placeholder="Describe how you'd like to tweak the reply"
+            placeholder={`Describe how you'd like to tweak the ${tweakButtonText.toLowerCase().replace("tweak ", "")}`}
             value={tweakText}
             onChange={(e) => setTweakText(e.target.value)}
             className={cn("transition-all", error && "animate-shake border-red-500")}

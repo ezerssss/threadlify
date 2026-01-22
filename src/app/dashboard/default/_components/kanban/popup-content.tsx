@@ -177,6 +177,7 @@ function PopUpContent(props: PropsInterface) {
           <CommentSection
             postId={post.id}
             recommendedReply={post.recommendedReply}
+            recommendedDM={post.recommendedDM}
             comments={post.topComments}
             boardColumnId={post.boardColumnId}
             onStatusChange={onStatusChange}

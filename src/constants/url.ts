@@ -13,6 +13,7 @@ export const SCAN_REQUEST_URL = `${BACKEND_BASE_URL}/scan/`;
 export const EDIT_PROFILE_URL = `${BACKEND_BASE_URL}/user/edit`;
 
 export const TWEAK_REPLY_URL = `${BACKEND_BASE_URL}/reply/tweak`;
+export const TWEAK_DM_URL = `${BACKEND_BASE_URL}/reply/dm/tweak`;
 
 export const ACCEPT_INVITE_URL = `${BACKEND_BASE_URL}/invite/accept`;
 

@@ -179,6 +179,7 @@ function PopUpContent(props: PropsInterface) {
             managedUserId={managedUserId}
             postId={post.id}
             recommendedReply={post.recommendedReply}
+            recommendedDM={post.recommendedDM}
             comments={post.topComments}
             boardColumnId={post.boardColumnId}
             onStatusChange={onStatusChange}
