@@ -18,7 +18,7 @@ import { useKanbanStore } from "@/stores/kanban";
 import { KanbanChangeRequestType } from "@/types/kanban";
 import { PostType } from "@/types/post";
 
-import { ActionFilter, FilterState, PriorityFilter } from "./filter-by";
+import { ActionFilter, FilterState, PriorityFilter, ReadStatusFilter } from "./filter-by";
 import { SortState } from "./sort-by";
 
 interface KanbanColumnInterface {
@@ -84,14 +84,17 @@ const defaultFilterState: FilterByInterface = {
   new: {
     priority: ["high", "medium", "low"],
     action: ["engage", "listen"],
+    seenStatus: ["read", "unread"],
   },
   inProgress: {
     priority: ["high", "medium", "low"],
     action: ["engage", "listen"],
+    seenStatus: ["read", "unread"],
   },
   done: {
     priority: ["high", "medium", "low"],
     action: ["engage", "listen"],
+    seenStatus: ["read", "unread"],
   },
 };
 
@@ -208,10 +211,19 @@ function useKanbanData(managedUserId: string) {
     }));
   }
 
-  function filterPosts(posts: PostType[], priorityFilter: PriorityFilter[], actionFilter: ActionFilter[]) {
+  function filterPosts(
+    posts: PostType[],
+    priorityFilter: PriorityFilter[],
+    actionFilter: ActionFilter[],
+    seenStatusFilter: ReadStatusFilter[],
+  ) {
     return posts
       .filter((post) => priorityFilter.includes(post.priority as PriorityFilter))
-      .filter((post) => actionFilter.includes(post.action as ActionFilter));
+      .filter((post) => actionFilter.includes(post.action as ActionFilter))
+      .filter((post) => {
+        const isSeen = post.isSeen;
+        return (isSeen && seenStatusFilter.includes("read")) || (!isSeen && seenStatusFilter.includes("unread"));
+      });
   }
 
   function handleFilterChange(columnId: keyof SortByInterface, value: FilterState) {
@@ -230,7 +242,7 @@ function useKanbanData(managedUserId: string) {
 
     const sortState = sortBy[columnId];
     const sortedPosts = sortPosts(posts, sortState.field, sortState.direction);
-    const filteredPosts = filterPosts(sortedPosts, value.priority, value.action);
+    const filteredPosts = filterPosts(sortedPosts, value.priority, value.action, value.seenStatus);
     const filteredPostIds = filteredPosts.map((post) => post.id);
 
     setData((prev) => ({
@@ -299,7 +311,12 @@ function useKanbanData(managedUserId: string) {
           const sortedPosts = sortPosts(posts, sortState.field, sortState.direction);
 
           const filterState = defaultFilterState[columnId as keyof FilterByInterface];
-          const filteredPosts = filterPosts(sortedPosts, filterState.priority, filterState.action);
+          const filteredPosts = filterPosts(
+            sortedPosts,
+            filterState.priority,
+            filterState.action,
+            filterState.seenStatus,
+          );
 
           const sortedAndFilteredPostIds: string[] = filteredPosts.map((post) => post.id);
           newColumnsData[columnId].postIds = sortedAndFilteredPostIds;
@@ -373,7 +390,12 @@ function useKanbanData(managedUserId: string) {
           const mergedNewPosts: PostType[] = mergedPostIds.map((postId) => mergedPosts[postId]);
           const sortedNewPosts: PostType[] = sortPosts(mergedNewPosts, sortBy.new.field, sortBy.new.direction);
 
-          const filteredNewPosts = filterPosts(sortedNewPosts, filterBy.new.priority, filterBy.new.action);
+          const filteredNewPosts = filterPosts(
+            sortedNewPosts,
+            filterBy.new.priority,
+            filterBy.new.action,
+            filterBy.new.seenStatus,
+          );
 
           const sortedAndFilteredNewPostIds: string[] = filteredNewPosts.map((post) => post.id);
 

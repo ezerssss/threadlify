@@ -15,10 +15,12 @@ import {
 
 export type PriorityFilter = "high" | "medium" | "low";
 export type ActionFilter = "engage" | "listen";
+export type ReadStatusFilter = "read" | "unread";
 
 export interface FilterState {
   priority: PriorityFilter[];
   action: ActionFilter[];
+  seenStatus: ReadStatusFilter[];
 }
 
 interface Props {
@@ -29,7 +31,7 @@ interface Props {
 }
 
 export function FilterButton({ value, onChange, disabled, className }: Props) {
-  const { priority, action } = value;
+  const { priority, action, seenStatus } = value;
 
   const toggle = <T extends string>(list: T[], setter: (l: T[]) => void, item: T) => {
     setter(list.includes(item) ? list.filter((x) => x !== item) : [...list, item]);
@@ -38,6 +40,8 @@ export function FilterButton({ value, onChange, disabled, className }: Props) {
   const setPriority = (p: PriorityFilter[]) => onChange({ ...value, priority: p });
 
   const setAction = (a: ActionFilter[]) => onChange({ ...value, action: a });
+
+  const setSeenStatus = (s: ReadStatusFilter[]) => onChange({ ...value, seenStatus: s });
 
   return (
     <DropdownMenu>
@@ -76,6 +80,20 @@ export function FilterButton({ value, onChange, disabled, className }: Props) {
             <label key={a} className="flex cursor-pointer items-center gap-2 text-xs">
               <Checkbox checked={action.includes(a)} onCheckedChange={() => toggle(action, setAction, a)} />
               <span className="capitalize">{a}</span>
+            </label>
+          ))}
+        </div>
+
+        <DropdownMenuSeparator />
+
+        {/* READ STATUS SECTION */}
+        <DropdownMenuLabel className="text-muted-foreground text-[10px]">Read Status</DropdownMenuLabel>
+
+        <div className="flex flex-col gap-1 px-2 py-1">
+          {(["read", "unread"] as ReadStatusFilter[]).map((s) => (
+            <label key={s} className="flex cursor-pointer items-center gap-2 text-xs">
+              <Checkbox checked={seenStatus.includes(s)} onCheckedChange={() => toggle(seenStatus, setSeenStatus, s)} />
+              <span className="capitalize">{s}</span>
             </label>
           ))}
         </div>
