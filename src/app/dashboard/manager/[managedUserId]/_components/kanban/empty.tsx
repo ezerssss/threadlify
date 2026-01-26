@@ -19,7 +19,7 @@ export default function EmptyKanban() {
   const icon = isProfileGenerated ? <IconArticle /> : <IconHammer />;
   const title = isProfileGenerated ? "No relevant posts yet" : "We're still building your profile";
   const content = isProfileGenerated
-    ? "New items will appear here automatically once we spot something useful."
+    ? "We automatically scan the market to gather data and populate your kanban board with relevant posts. New items will appear here as we discover them."
     : "Your dashboard will start filling in as soon as everything is ready. This should not take too long.";
 
   return (

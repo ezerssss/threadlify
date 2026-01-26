@@ -1,18 +1,14 @@
 "use client";
 
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useState, type KeyboardEvent } from "react";
 
-import ky from "ky";
-import { Mail, Scan } from "lucide-react";
+import { Mail } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { WorkInProgressOverlay } from "@/components/work-in-progress-overlay";
-import { SCAN_REQUEST_URL } from "@/constants/url";
 import useHasData from "@/hooks/use-has-data";
 import useUser from "@/hooks/use-user";
-import { cn, toastError } from "@/lib/utils";
 
 import { CopilotContent } from "./_components/copilot-content";
 import { CopilotUpgrade } from "./_components/copilot-upgrade";
@@ -150,16 +146,11 @@ function getAnswerForQuestion(question: string): string {
 }
 
 function Page() {
-  const { userData, idToken } = useUser();
+  const { userData } = useUser();
   const { hasData, isLoading: isCheckingData } = useHasData();
   const [question, setQuestion] = useState("");
   const [result, setResult] = useState<{ question: string; answer: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isScanning, setIsScanning] = useState(false);
-
-  useEffect(() => {
-    setIsScanning(userData?.isScanning ?? false);
-  }, [userData?.isScanning]);
 
   const handleAsk = async () => {
     if (!question.trim()) return;
@@ -190,41 +181,6 @@ function Page() {
     }
   };
 
-  async function handleScanMarket() {
-    if (!userData) {
-      return;
-    }
-
-    const { subscription } = userData;
-    const remainingScans = subscription.monthlyQuota - subscription.usedThisPeriod;
-
-    if (remainingScans < 1) {
-      toastError("You have no scans remaining on your current plan. Please upgrade or purchase additional scans.");
-      return;
-    }
-
-    if (isScanning) {
-      toastError("A scan is currently in progress. Please wait for it to finish before scanning.");
-      return;
-    }
-
-    try {
-      setIsScanning(true);
-      if (!idToken) {
-        throw new Error("You are unauthorized to do this action.");
-      }
-
-      await ky.post(SCAN_REQUEST_URL, {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
-    } catch (error) {
-      toastError(error);
-      setIsScanning(false);
-    }
-  }
-
   // Lock content if subscription is free or expired
   const isSubscriptionLocked = userData?.subscription.plan === "free";
   const hasNoData = !hasData && !isCheckingData;
@@ -249,78 +205,23 @@ function Page() {
     <>
       {hasNoData && !isSubscriptionLocked && (
         <Alert className="border-amber-200 bg-amber-50/50">
-          <Scan className="h-4 w-4 text-amber-600" />
           <AlertTitle className="text-foreground">Get started with Threadlify</AlertTitle>
           <AlertDescription className="text-muted-foreground">
             <div className="space-y-3">
               <p>
-                Perform a scan to gather data from market conversations, then return here to ask questions about your
-                posts, identify patterns, and get actionable recommendations.
+                We automatically scan the market to gather data from conversations. Once we have data, you can ask
+                questions about your posts, identify patterns, and get actionable recommendations.
               </p>
               <div className="flex items-center gap-2">
-                {(() => {
-                  if (!userData) return null;
-                  const { subscription } = userData;
-                  const remainingScans = subscription.monthlyQuota - subscription.usedThisPeriod;
-                  const isFreeTier = subscription.plan === "free";
-                  const isButtonDisabled = isScanning || !userData || isFreeTier || remainingScans < 1;
-
-                  function getTooltipMessage(): string {
-                    if (isScanning) {
-                      return "Scan in progress...";
-                    }
-
-                    if (isButtonDisabled) {
-                      if (isFreeTier) {
-                        if (remainingScans > 0) {
-                          return "Upgrade to Pro to perform scans";
-                        } else {
-                          return "Upgrade to Pro to get more scans";
-                        }
-                      }
-
-                      // Pro/Enterprise but zero scans
-                      if (remainingScans < 1) {
-                        return "Your scans will reset at the start of your next billing cycle";
-                      }
-                    }
-
-                    // Button is enabled - show action message
-                    return "Click to perform a scan and gather market data";
-                  }
-
-                  const tooltipMessage = getTooltipMessage();
-
-                  return (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span>
-                          <Button
-                            onClick={handleScanMarket}
-                            disabled={isButtonDisabled}
-                            size="sm"
-                            className={cn(isScanning && "animate-pulse")}
-                          >
-                            <Scan className="mr-2 h-4 w-4" />
-                            {isScanning ? "Scanning..." : "Perform scan"}
-                          </Button>
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{tooltipMessage}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  );
-                })()}
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const subject = encodeURIComponent("No Data After Scan - Copilot");
+                    const subject = encodeURIComponent("No Data in Copilot - Copilot");
                     const body = encodeURIComponent(
                       `Hello Threadlify Support,
 
-I recently upgraded to ${userData?.subscription.plan ?? "pro"} and performed a scan, but I'm still not seeing any data in my Copilot.
+I recently upgraded to ${userData?.subscription.plan ?? "pro"} but I'm still not seeing any data in my Copilot.
 
 Could you please help me troubleshoot this issue?
 

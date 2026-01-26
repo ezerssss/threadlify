@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import useManagedUser from "@/hooks/use-managed-user";
 
 import Kanban from "./_components/kanban";
-import ScanActionButtons from "./_components/scan-action-buttons";
 import ManagedUserSkeleton from "./skeleton";
 
 function ManagedUserView() {
@@ -57,11 +56,10 @@ function ManagedUserView() {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-muted-foreground text-sm">Remaining Scans</p>
+              <p className="text-muted-foreground text-sm">Scan Quota</p>
               <Badge variant={remainingScans > 0 ? "default" : "destructive"}>{remainingScans}</Badge>
+              <p className="text-muted-foreground mt-1 text-xs">Automatic scans included</p>
             </div>
-
-            <ScanActionButtons managedUserId={managedUserId} />
           </div>
         </CardContent>
       </Card>

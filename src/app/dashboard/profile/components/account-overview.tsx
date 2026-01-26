@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { EDIT_PROFILE_URL } from "@/constants/url";
+import useRelevantPostsCount from "@/hooks/use-relevant-posts-count";
 import useUser from "@/hooks/use-user";
 import { toastError } from "@/lib/utils";
 import { EditUserProfileType } from "@/types/user";
@@ -30,6 +31,7 @@ import { AccountOverViewSkeleton } from "./skeleton/account-overview-skeleton";
 // eslint-disable-next-line complexity
 export function AccountOverview() {
   const { userData, idToken } = useUser();
+  const { count: relevantPostsCount, isLoading: isLoadingPostsCount } = useRelevantPostsCount();
   const [isLoading, setIsLoading] = useState(false);
   const [editingTab, setEditingTab] = useState<string | null>(null);
   const [formData, setFormData] = useState<EditUserProfileType>({
@@ -75,9 +77,8 @@ export function AccountOverview() {
     return <AccountOverViewSkeleton />;
   }
 
-  const { name, url, subscription, totalScans, maxScrapeRecencyInMonths } = userData;
-  const { monthlyQuota, usedThisPeriod } = subscription;
-  const remainingScans = monthlyQuota - usedThisPeriod;
+  const { name, url, subscription } = userData;
+  const { plan, periodEnd } = subscription;
 
   const parsedUrl = parse(url).domain;
 
@@ -423,7 +424,20 @@ export function AccountOverview() {
             <TabsContent value="recency" className="space-y-4">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label>Max Scrape Recency (Months)</Label>
+                  <div className="flex items-center gap-1.5">
+                    <Label>Max Scrape Recency (Months)</Label>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <InfoIcon size={14} className="text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Only get posts from the last {formData.maxScrapeRecencyInMonths} month(s). This is the maximum
+                          date range to scrape posts from.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   {editingTab === "recency" ? (
                     <div className="flex gap-2">
                       <Button onClick={handleCancel} variant="outline" size="sm" disabled={isLoading}>
@@ -460,52 +474,30 @@ export function AccountOverview() {
           <Separator />
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
             <div className="space-y-1">
-              <div className="flex items-center gap-1.5">
-                <span className="text-muted-foreground text-xs">Monthly limit</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <InfoIcon size={12} className="text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Your monthly scan quota</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <p className="text-lg font-semibold tabular-nums">{monthlyQuota}</p>
+              <span className="text-muted-foreground text-xs">Current Plan</span>
+              <p className="text-lg font-semibold capitalize">
+                {plan === "pro" ? "Professional" : plan === "enterprise" ? "Enterprise" : "Free"}
+              </p>
             </div>
             <div className="space-y-1">
-              <div className="flex items-center gap-1.5">
-                <span className="text-muted-foreground text-xs">Remaining</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <InfoIcon size={12} className="text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Scans reset at the start of each billing cycle while your paid plan is active.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <p className="text-lg font-semibold tabular-nums">{remainingScans}</p>
+              <span className="text-muted-foreground text-xs">Plan End Date</span>
+              <p className="text-lg font-semibold tabular-nums">
+                {periodEnd
+                  ? new Date(periodEnd).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  : "N/A"}
+              </p>
             </div>
             <div className="space-y-1">
-              <span className="text-muted-foreground text-xs">Total scans</span>
-              <p className="text-lg font-semibold tabular-nums">{totalScans}</p>
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5">
-                <span className="text-muted-foreground text-xs">Max recency</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <InfoIcon size={12} className="text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Only scrape posts from the last {maxScrapeRecencyInMonths} month(s).</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <p className="text-lg font-semibold tabular-nums">{maxScrapeRecencyInMonths} mo</p>
+              <span className="text-muted-foreground text-xs">Relevant Posts</span>
+              <p className="text-lg font-semibold tabular-nums">
+                {isLoadingPostsCount ? "..." : (relevantPostsCount ?? 0)}
+              </p>
             </div>
           </div>
         </div>

@@ -112,10 +112,10 @@ export default function PremiumUpgradeDialog() {
       icon: Zap,
       price: "$100",
       period: "/month",
-      scans: "20 scans per month",
+      scans: "Automatic scans included",
       badge: "Most Popular",
       badgeColor: "bg-primary",
-      features: ["All core features included", "Email support"],
+      features: ["All core features included", "Automatic market scanning every other day", "Email support"],
     },
     {
       id: "enterprise",
@@ -123,10 +123,10 @@ export default function PremiumUpgradeDialog() {
       icon: Building2,
       price: "Custom",
       period: "",
-      scans: "Unlimited scans",
+      scans: "Unlimited automatic scans",
       badge: "Best Value",
       badgeColor: "bg-green-500",
-      features: ["All features included in the Professional plan", "Unlimited monthly scans", "Priority support"],
+      features: ["All features included in the Professional plan", "Unlimited automatic scans", "Priority support"],
     },
   ];
 
@@ -137,86 +137,81 @@ export default function PremiumUpgradeDialog() {
   const selectedPlanData = plans.find((p) => p.id === selectedPlan);
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline">Get More Scans</Button>
-        </DialogTrigger>
-
-        <DialogContent className="scrollbar-thin bg-card max-h-[90vh] overflow-y-auto p-4">
-          <DialogHeader>
-            <div className="bg-primary/10 mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-              <CreditCard className="text-primary h-6 w-6" />
-            </div>
-            <DialogTitle className="text-center text-2xl">Upgrade Your Plan</DialogTitle>
-            <DialogDescription className="text-center text-base">
-              Choose the plan that works best for you
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6 py-4">
-            {/* Plan Selection */}
-            <div className="grid gap-4 md:grid-cols-2">
-              {plans.map((plan) => {
-                const Icon = plan.icon;
-                const isSelected = selectedPlan === plan.id;
-
-                return (
-                  <button
-                    key={plan.id}
-                    onClick={() => handlePlanSelect(plan.id)}
-                    className={`relative rounded-lg border-2 p-5 text-left transition-all duration-300 hover:scale-[102%] ${
-                      isSelected
-                        ? "border-primary bg-primary/5 shadow-md"
-                        : "border-gray-200 bg-white hover:border-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`absolute -top-3 right-2 mb-2 w-fit rounded-lg px-2 py-1 text-xs font-semibold text-white ${plan.badgeColor}`}
-                    >
-                      {plan.badge}
-                    </div>
-
-                    <div className="mb-3 flex items-center gap-1">
-                      <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
-                        <Icon className="text-primary h-4 w-4" />
-                      </div>
-                      <h3 className="text-lg font-semibold">{plan.name}</h3>
-                    </div>
-
-                    <div className="mb-3">
-                      <span className="text-primary text-3xl font-bold">{plan.price}</span>
-                      <span className="text-sm text-gray-600">{plan.period}</span>
-                    </div>
-
-                    <p className="mb-3 text-sm font-medium text-gray-700">{plan.scans}</p>
-
-                    <ul className="space-y-1.5">
-                      {plan.features.map((feature, idx) => (
-                        <li key={feature} className="flex items-start gap-2 text-xs text-gray-600">
-                          <Check className="text-primary mt-0.5 h-3 w-3 flex-shrink-0" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Instructions Section - Only show when plan is selected */}
-            {selectedPlan && selectedPlanData && (
-              <RequestEmail selectedPlanData={selectedPlanData} supportEmail={paypalEmail} />
-            )}
-
-            {!selectedPlan && (
-              <div className="py-4 text-center text-sm text-gray-500">
-                Select a plan above to see payment instructions
-              </div>
-            )}
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="scrollbar-thin bg-card max-h-[90vh] overflow-y-auto p-4">
+        <DialogHeader>
+          <div className="bg-primary/10 mx-auto flex h-12 w-12 items-center justify-center rounded-full">
+            <CreditCard className="text-primary h-6 w-6" />
           </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+          <DialogTitle className="text-center text-2xl">Upgrade Your Plan</DialogTitle>
+          <DialogDescription className="text-center text-base">
+            Choose the plan that works best for you. All plans include automatic scans that run continuously to gather
+            market data.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6 py-4">
+          {/* Plan Selection */}
+          <div className="grid gap-4 md:grid-cols-2">
+            {plans.map((plan) => {
+              const Icon = plan.icon;
+              const isSelected = selectedPlan === plan.id;
+
+              return (
+                <button
+                  key={plan.id}
+                  onClick={() => handlePlanSelect(plan.id)}
+                  className={`relative rounded-lg border-2 p-5 text-left transition-all duration-300 hover:scale-[102%] ${
+                    isSelected
+                      ? "border-primary bg-primary/5 shadow-md"
+                      : "border-gray-200 bg-white hover:border-gray-300"
+                  }`}
+                >
+                  <div
+                    className={`absolute -top-3 right-2 mb-2 w-fit rounded-lg px-2 py-1 text-xs font-semibold text-white ${plan.badgeColor}`}
+                  >
+                    {plan.badge}
+                  </div>
+
+                  <div className="mb-3 flex items-center gap-1">
+                    <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
+                      <Icon className="text-primary h-4 w-4" />
+                    </div>
+                    <h3 className="text-lg font-semibold">{plan.name}</h3>
+                  </div>
+
+                  <div className="mb-3">
+                    <span className="text-primary text-3xl font-bold">{plan.price}</span>
+                    <span className="text-sm text-gray-600">{plan.period}</span>
+                  </div>
+
+                  <p className="mb-3 text-sm font-medium text-gray-700">{plan.scans}</p>
+
+                  <ul className="space-y-1.5">
+                    {plan.features.map((feature, idx) => (
+                      <li key={feature} className="flex items-start gap-2 text-xs text-gray-600">
+                        <Check className="text-primary mt-0.5 h-3 w-3 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Instructions Section - Only show when plan is selected */}
+          {selectedPlan && selectedPlanData && (
+            <RequestEmail selectedPlanData={selectedPlanData} supportEmail={paypalEmail} />
+          )}
+
+          {!selectedPlan && (
+            <div className="py-4 text-center text-sm text-gray-500">
+              Select a plan above to see payment instructions
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

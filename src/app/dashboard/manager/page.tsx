@@ -57,7 +57,7 @@ export default function ManagerUsersPage() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Remaining Scans</TableHead>
+                <TableHead>Scan Quota</TableHead>
                 <TableHead>Scanning</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>

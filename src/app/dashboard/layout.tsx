@@ -9,8 +9,8 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { cn } from "@/lib/utils";
 import type { SidebarVariant, SidebarCollapsible, ContentLayout, NavbarStyle } from "@/types/preferences/layout";
 
+import PremiumUpgradeDialog from "./_components/sidebar/get-more-scans";
 import { ProgressIndicator } from "./_components/sidebar/progress-indicator";
-import ScanActionButtons from "./_components/sidebar/scan-action-buttons";
 
 export default function Layout({ children }: Readonly<{ children: ReactNode }>) {
   const [defaultOpen, setDefaultOpen] = useState(true);
@@ -56,8 +56,6 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
                 <ProgressIndicator />
               </div>
               <div className="flex items-center gap-2">
-                <ScanActionButtons />
-
                 {/* <LayoutControls {...layoutPreferences} />
                 <ThemeSwitcher />
                 <AccountSwitcher /> */}
@@ -66,6 +64,7 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
           </header>
           <div className="h-full p-4 md:p-6">{children}</div>
         </SidebarInset>
+        <PremiumUpgradeDialog />
       </SidebarProvider>
     </ProtectedRouteWrapper>
   );

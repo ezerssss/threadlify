@@ -102,7 +102,10 @@ export function CopilotContent({
                         </span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Perform a scan first to gather market data before using the Copilot</p>
+                        <p>
+                          We automatically scan the market to gather data. Please wait for data to be collected before
+                          using the Copilot
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   ) : (
@@ -126,7 +129,10 @@ export function CopilotContent({
                         </span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Perform a scan first to gather market data before using the Copilot</p>
+                        <p>
+                          We automatically scan the market to gather data. Please wait for data to be collected before
+                          using the Copilot
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   ) : (
