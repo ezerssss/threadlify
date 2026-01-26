@@ -23,6 +23,7 @@ export type RecommendedDMType = z.infer<typeof RecommendedDMSchema>;
 export const PostSchema = z.object({
   id: z.string().min(1),
   isHidden: z.boolean(),
+  isSeen: z.boolean().default(false),
   userId: z.string().min(1),
   author: z.string().min(1),
   title: z.string().min(1),

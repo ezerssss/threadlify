@@ -5,7 +5,7 @@ import { siReddit } from "simple-icons";
 
 import { SimpleIcon } from "@/components/simple-icon";
 import { Badge } from "@/components/ui/badge";
-import { formatISODate } from "@/lib/utils";
+import { cn, formatISODate } from "@/lib/utils";
 import { useKanbanStore } from "@/stores/kanban";
 import { PostType } from "@/types/post";
 
@@ -30,12 +30,16 @@ function KanbanCard(props: PropsInteface) {
   }, [post, index, setActivePost, setActivePostIndex, setIsOpen]);
 
   return (
-    <div className="bg-card cursor-grab rounded-md border p-2.5 shadow-xs" onClick={handleClick}>
+    <div
+      className={cn("bg-card cursor-grab rounded-md border p-2.5 shadow-xs", !post.isSeen && "border-primary")}
+      onClick={handleClick}
+    >
       <div className="flex flex-col gap-2">
         <div className="text-muted-foreground flex items-center justify-between text-xs">
           <div className="flex items-center gap-1">
             <SimpleIcon icon={siReddit} className="size-4" />
             <span>{post.platform}</span>
+            {!post.isSeen && <span className="bg-primary ml-1 flex h-2 w-2 items-center justify-center rounded-full" />}
           </div>
           {post.postCreatedAt && (
             <time className="text-[10px] whitespace-nowrap">{formatISODate(post.postCreatedAt)}</time>

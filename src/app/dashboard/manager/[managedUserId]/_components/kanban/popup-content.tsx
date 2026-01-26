@@ -1,7 +1,8 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 
 import Link from "next/link";
 
+import ky from "ky";
 import { CheckCircleIcon, ExternalLinkIcon, SparkleIcon, Trash2Icon } from "lucide-react";
 import Markdown from "react-markdown";
 import { useWindowSize } from "react-use";
@@ -12,7 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
+import { POST_SEEN_URL } from "@/constants/url";
 import useManagedUser from "@/hooks/use-managed-user";
+import useUser from "@/hooks/use-user";
 import { formatISODate } from "@/lib/utils";
 import { useKanbanStore } from "@/stores/kanban";
 
@@ -30,6 +33,7 @@ function PopUpContent(props: PropsInterface) {
   const { managedUserId, handleChangeStatus, updateSinglePost, handleTrashDrop } = props;
 
   const { managedUserData: userData } = useManagedUser(managedUserId);
+  const { idToken } = useUser();
   const [isTrashing, setIsTrashing] = useState(false);
   const isOpen = useKanbanStore((state) => state.isOpen);
   const post = useKanbanStore((state) => state.activePost);
@@ -38,6 +42,31 @@ function PopUpContent(props: PropsInterface) {
   const setActivePost = useKanbanStore((state) => state.setActivePost);
   const setActivePostIndex = useKanbanStore((state) => state.setActivePostIndex);
   const { height } = useWindowSize();
+
+  // Mark post as seen when opened
+  useEffect(() => {
+    if (!isOpen || !post || !idToken || post.isSeen) {
+      return;
+    }
+
+    (async () => {
+      try {
+        await ky.post(POST_SEEN_URL, {
+          json: { id: post.id, managedUserId },
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
+
+        // Update local data
+        updateSinglePost(post.id, { isSeen: true });
+        setActivePost({ ...post, isSeen: true });
+      } catch (error) {
+        // Silently fail - don't disrupt user experience
+        console.error("Failed to mark post as seen:", error);
+      }
+    })();
+  }, [isOpen, post, idToken, managedUserId, updateSinglePost, setActivePost]);
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
