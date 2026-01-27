@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
-
 import { User, onAuthStateChanged } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
 import { USERS_COLLECTION_REF } from "@/constants/firebase";
 import { REFRESH_JWT_TOKEN_INTERVAL_IN_MS } from "@/constants/time";
@@ -28,6 +27,7 @@ export default function useUser() {
     }
 
     setIsLoading(true);
+
     const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
 
     const unsubscribe = onSnapshot(userDocRef, (doc) => {
