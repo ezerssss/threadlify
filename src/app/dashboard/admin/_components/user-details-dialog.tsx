@@ -29,6 +29,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { USERS_COLLECTION_REF } from "@/constants/firebase";
 import { ADMIN_TRIGGER_SCAN_URL } from "@/constants/url";
 import useUser from "@/hooks/use-user";
+import useUserRelevantPostsCount from "@/hooks/use-user-relevant-posts-count";
 import { formatISODate, toastError } from "@/lib/utils";
 import { UserDataType } from "@/types/user";
 
@@ -48,6 +49,9 @@ export default function UserDetailsDialog({ user, open, onOpenChange }: UserDeta
   const [currentUser, setCurrentUser] = useState<UserDataType>(user);
   const [isTriggeringScan, setIsTriggeringScan] = useState(false);
   const { idToken } = useUser();
+  const { count: relevantPostsCount, isLoading: isLoadingRelevantPosts } = useUserRelevantPostsCount({
+    userId: currentUser.id,
+  });
 
   // Listen to real-time updates for this specific user
   useEffect(() => {
@@ -295,15 +299,13 @@ export default function UserDetailsDialog({ user, open, onOpenChange }: UserDeta
                   )}
                 </div>
 
-                {currentUser.processStatus && (
-                  <div className="space-y-1">
-                    <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                      <TrendingUp className="h-4 w-4" />
-                      <span>Process Status</span>
-                    </div>
-                    <p className="text-sm">{currentUser.processStatus}</p>
+                <div className="space-y-1">
+                  <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                    <TrendingUp className="h-4 w-4" />
+                    <span>Process Status</span>
                   </div>
-                )}
+                  <p className="text-sm">{currentUser.processStatus || "Idle"}</p>
+                </div>
               </div>
             </div>
 
@@ -409,14 +411,18 @@ export default function UserDetailsDialog({ user, open, onOpenChange }: UserDeta
             {/* Statistics */}
             <div className="space-y-3 border-t pt-4">
               <h3 className="text-lg font-semibold">Statistics</h3>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 <div className="space-y-1">
                   <p className="text-muted-foreground text-sm">Total Scans</p>
                   <p className="text-lg font-semibold">{currentUser.totalScans}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-muted-foreground text-sm">Total Posts</p>
+                  <p className="text-muted-foreground text-sm">Total Scanned Posts</p>
                   <p className="text-lg font-semibold">{currentUser.totalScrapedPosts}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-muted-foreground text-sm">Relevant Posts</p>
+                  <p className="text-lg font-semibold">{isLoadingRelevantPosts ? "..." : (relevantPostsCount ?? 0)}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-muted-foreground text-sm">Total AI Calls</p>

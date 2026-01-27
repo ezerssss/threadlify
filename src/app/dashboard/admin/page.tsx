@@ -361,15 +361,13 @@ export default function AdminUsersPage() {
                 </div>
               </div>
 
-              {user.processStatus && (
-                <div className="space-y-1 border-t pt-2">
-                  <div className="text-muted-foreground flex items-center gap-1.5">
-                    <TrendingUp className="h-3.5 w-3.5" />
-                    <span className="text-xs">Process Status</span>
-                  </div>
-                  <p className="truncate text-xs">{user.processStatus}</p>
+              <div className="space-y-1 border-t pt-2">
+                <div className="text-muted-foreground flex items-center gap-1.5">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  <span className="text-xs">Process Status</span>
                 </div>
-              )}
+                <p className="truncate text-xs">{user.processStatus || "Idle"}</p>
+              </div>
 
               <div className="grid grid-cols-3 gap-2 border-t pt-2 text-xs">
                 <div>
@@ -377,7 +375,7 @@ export default function AdminUsersPage() {
                   <p className="font-medium">{user.totalScans}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Posts</p>
+                  <p className="text-muted-foreground">Scanned Posts</p>
                   <p className="font-medium">{user.totalScrapedPosts}</p>
                 </div>
                 <div>
