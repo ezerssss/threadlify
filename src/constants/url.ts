@@ -19,3 +19,6 @@ export const TWEAK_DM_URL = `${BACKEND_BASE_URL}/reply/dm/tweak`;
 export const ACCEPT_INVITE_URL = `${BACKEND_BASE_URL}/invite/accept`;
 
 export const UPDATE_SUBREDDITS_URL = `${BACKEND_BASE_URL}/user/subreddits`;
+
+export const ADMIN_UPDATE_SUBSCRIPTION_URL = `${BACKEND_BASE_URL}/admin/user/subscription`;
+export const ADMIN_EXTEND_SUBSCRIPTION_URL = `${BACKEND_BASE_URL}/admin/user/subscription/extend`;

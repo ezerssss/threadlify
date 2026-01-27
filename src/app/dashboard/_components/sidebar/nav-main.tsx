@@ -166,11 +166,15 @@ export function NavMain({ items }: NavMainProps) {
             <SidebarMenu>
               {group.items
                 .filter((item) => {
-                  if (!item.isManagerOnly) {
-                    return true;
+                  if (item.isManagerOnly) {
+                    return !!claims.isManager;
                   }
 
-                  return !!claims.isManager;
+                  if (item.isAdminOnly) {
+                    return !!claims.isAdmin;
+                  }
+
+                  return true;
                 })
                 .map((item) => {
                   if (state === "collapsed" && !isMobile) {

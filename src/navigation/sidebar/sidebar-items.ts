@@ -1,4 +1,13 @@
-import { Kanban, type LucideIcon, User, BookUserIcon, LightbulbIcon, BotMessageSquareIcon, Eye } from "lucide-react";
+import {
+  Kanban,
+  type LucideIcon,
+  User,
+  BookUserIcon,
+  LightbulbIcon,
+  BotMessageSquareIcon,
+  Eye,
+  Shield,
+} from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -18,6 +27,7 @@ export interface NavMainItem {
   newTab?: boolean;
   isNew?: boolean;
   isManagerOnly?: boolean;
+  isAdminOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -61,6 +71,12 @@ export const sidebarItems: NavGroup[] = [
         url: "/dashboard/manager",
         isManagerOnly: true,
         icon: BookUserIcon,
+      },
+      {
+        title: "Admin",
+        url: "/dashboard/admin",
+        isAdminOnly: true,
+        icon: Shield,
       },
     ],
   },
