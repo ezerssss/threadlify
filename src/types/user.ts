@@ -25,7 +25,7 @@ export const UserDataSchema = z.object({
   onboardingStatus: OnboardingStatusEnum,
   isInitialFetchDone: z.boolean(),
   isScanning: z.boolean(),
-  processStatus: z.string(),
+  processStatus: z.record(z.string(), z.string()),
 
   totalScrapedPosts: z.number().nonnegative(),
   totalAICalls: z.number().nonnegative(),

@@ -1,4 +1,3 @@
-import { FlatCompat } from "@eslint/eslintrc";
 import pluginJs from "@eslint/js";
 import pluginImport from "eslint-plugin-import";
 import pluginReact from "eslint-plugin-react";
@@ -8,10 +7,7 @@ import securityPlugin from "eslint-plugin-security";
 import prettier from "eslint-plugin-prettier";
 import unicorn from "eslint-plugin-unicorn";
 import sonarjs from "eslint-plugin-sonarjs";
-
-const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
-});
+import nextPlugin from "@next/eslint-plugin-next";
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -30,6 +26,12 @@ export default [
         version: "detect",
       },
     },
+  },
+  pluginJs.configs.recommended,
+  securityPlugin.configs.recommended,
+  ...tseslint.configs.recommended,
+  nextPlugin.configs["core-web-vitals"],
+  {
     plugins: {
       import: pluginImport,
       security: securityPlugin,
@@ -39,11 +41,6 @@ export default [
       sonarjs: sonarjs,
     },
   },
-  pluginJs.configs.recommended,
-  pluginReact.configs.flat.recommended,
-  securityPlugin.configs.recommended,
-  ...tseslint.configs.recommended,
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
       // Prettier integration rules

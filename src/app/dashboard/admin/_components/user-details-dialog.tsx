@@ -42,6 +42,42 @@ interface UserDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+function ProcessStatusDisplay({
+  processStatus,
+  size = "xs",
+}: {
+  processStatus: Record<string, string>;
+  size?: "xs" | "sm";
+}) {
+  const statusEntries = Object.entries(processStatus);
+  const statusCount = statusEntries.length;
+  const firstStatus = statusEntries[0]?.[1] || "";
+  const textSize = size === "sm" ? "text-sm" : "text-xs";
+
+  if (statusCount === 1) {
+    return <p className={`truncate ${textSize}`}>{firstStatus}</p>;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <p className={`truncate ${textSize} cursor-help`}>
+          {firstStatus} +{statusCount - 1} more
+        </p>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="max-w-xs">
+        <div className="space-y-1">
+          {statusEntries.map(([id, status]) => (
+            <div key={id} className="text-xs">
+              {status}
+            </div>
+          ))}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 // eslint-disable-next-line complexity
 export default function UserDetailsDialog({ user, open, onOpenChange }: UserDetailsDialogProps) {
   const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] = useState(false);
@@ -304,7 +340,11 @@ export default function UserDetailsDialog({ user, open, onOpenChange }: UserDeta
                     <TrendingUp className="h-4 w-4" />
                     <span>Process Status</span>
                   </div>
-                  <p className="text-sm">{currentUser.processStatus || "Idle"}</p>
+                  {currentUser.processStatus && Object.keys(currentUser.processStatus).length > 0 ? (
+                    <ProcessStatusDisplay processStatus={currentUser.processStatus} size="sm" />
+                  ) : (
+                    <p className="text-sm">Idle</p>
+                  )}
                 </div>
               </div>
             </div>

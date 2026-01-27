@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { USERS_COLLECTION_REF } from "@/constants/firebase";
 import { formatISODate } from "@/lib/utils";
 import { UserDataType } from "@/types/user";
@@ -29,6 +30,33 @@ import UserDetailsDialog from "./_components/user-details-dialog";
 
 type SortField = "name" | "email" | "createdAt" | "subscription.plan" | "subscription.status" | "isScanning";
 type SortDirection = "asc" | "desc";
+
+function ProcessStatusDisplay({ processStatus }: { processStatus: Record<string, string> }) {
+  const statusEntries = Object.entries(processStatus);
+  const statusCount = statusEntries.length;
+  const firstStatus = statusEntries[0]?.[1] || "";
+
+  if (statusCount === 1) {
+    return <p className="truncate text-xs">{firstStatus}</p>;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <p className="truncate text-xs cursor-help">{firstStatus} +{statusCount - 1} more</p>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="max-w-xs">
+        <div className="space-y-1">
+          {statusEntries.map(([id, status]) => (
+            <div key={id} className="text-xs">
+              {status}
+            </div>
+          ))}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 // eslint-disable-next-line complexity
 export default function AdminUsersPage() {
@@ -366,7 +394,11 @@ export default function AdminUsersPage() {
                   <TrendingUp className="h-3.5 w-3.5" />
                   <span className="text-xs">Process Status</span>
                 </div>
-                <p className="truncate text-xs">{user.processStatus || "Idle"}</p>
+                {user.processStatus && Object.keys(user.processStatus).length > 0 ? (
+                  <ProcessStatusDisplay processStatus={user.processStatus} />
+                ) : (
+                  <p className="truncate text-xs">Idle</p>
+                )}
               </div>
 
               <div className="grid grid-cols-3 gap-2 border-t pt-2 text-xs">

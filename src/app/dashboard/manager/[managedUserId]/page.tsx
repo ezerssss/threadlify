@@ -6,10 +6,44 @@ import { useParams } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import useManagedUser from "@/hooks/use-managed-user";
 
 import Kanban from "./_components/kanban";
 import ManagedUserSkeleton from "./skeleton";
+
+function ProcessStatusDisplay({ processStatus }: { processStatus: Record<string, string> }) {
+  const statusEntries = Object.entries(processStatus);
+  const statusCount = statusEntries.length;
+  const firstStatus = statusEntries[0]?.[1] || "";
+
+  if (statusCount === 1) {
+    return (
+      <p className={`truncate text-sm ${firstStatus ? "text-foreground" : "text-muted-foreground"}`}>
+        {firstStatus}
+      </p>
+    );
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <p className="truncate text-sm text-foreground cursor-help">
+          {firstStatus} +{statusCount - 1} more
+        </p>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="max-w-xs">
+        <div className="space-y-1">
+          {statusEntries.map(([id, status]) => (
+            <div key={id} className="text-xs">
+              {status}
+            </div>
+          ))}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 function ManagedUserView() {
   const { managedUserId } = useParams<{ managedUserId: string }>();
@@ -46,13 +80,11 @@ function ManagedUserView() {
 
           <div>
             <p className="text-muted-foreground text-sm">Status</p>
-            <p
-              className={`truncate text-sm ${
-                managedUserData.processStatus ? "text-foreground" : "text-muted-foreground"
-              }`}
-            >
-              {managedUserData.processStatus || "Idle"}
-            </p>
+            {managedUserData.processStatus && Object.keys(managedUserData.processStatus).length > 0 ? (
+              <ProcessStatusDisplay processStatus={managedUserData.processStatus} />
+            ) : (
+              <p className="text-muted-foreground truncate text-sm">Idle</p>
+            )}
           </div>
           <div className="flex items-center justify-between">
             <div>

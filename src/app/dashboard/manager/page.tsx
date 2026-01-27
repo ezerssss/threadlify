@@ -17,8 +17,36 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { USERS_COLLECTION_REF } from "@/constants/firebase";
 import { UserDataType } from "@/types/user";
+
+function ProcessStatusDisplay({ processStatus }: { processStatus: Record<string, string> }) {
+  const statusEntries = Object.entries(processStatus);
+  const statusCount = statusEntries.length;
+  const firstStatus = statusEntries[0]?.[1] || "";
+
+  if (statusCount === 1) {
+    return <span className="truncate">{firstStatus}</span>;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="truncate cursor-help">{firstStatus} +{statusCount - 1} more</span>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="max-w-xs">
+        <div className="space-y-1">
+          {statusEntries.map(([id, status]) => (
+            <div key={id} className="text-xs">
+              {status}
+            </div>
+          ))}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 export default function ManagerUsersPage() {
   const [managedUsers, setManagedUsers] = useState<UserDataType[]>([]);
@@ -72,7 +100,13 @@ export default function ManagerUsersPage() {
                   <TableCell>
                     {user.isScanning ? <Badge>Running</Badge> : <Badge variant="secondary">Idle</Badge>}
                   </TableCell>
-                  <TableCell className="text-muted-foreground max-w-xs truncate">{user.processStatus || "—"}</TableCell>
+                  <TableCell className="text-muted-foreground max-w-xs truncate">
+                    {user.processStatus && Object.keys(user.processStatus).length > 0 ? (
+                      <ProcessStatusDisplay processStatus={user.processStatus} />
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
