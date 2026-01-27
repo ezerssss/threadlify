@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 
 import { doc, onSnapshot } from "firebase/firestore";
+import ky from "ky";
 import {
   CreditCard,
   Mail,
@@ -16,13 +17,19 @@ import {
   Target,
   Zap,
   Clock,
+  Play,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { USERS_COLLECTION_REF } from "@/constants/firebase";
-import { formatISODate } from "@/lib/utils";
+import { ADMIN_TRIGGER_SCAN_URL } from "@/constants/url";
+import useUser from "@/hooks/use-user";
+import { formatISODate, toastError } from "@/lib/utils";
 import { UserDataType } from "@/types/user";
 
 import ChangeSubscriptionDialog from "./change-subscription-dialog";
@@ -39,6 +46,8 @@ export default function UserDetailsDialog({ user, open, onOpenChange }: UserDeta
   const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] = useState(false);
   const [isExtendDialogOpen, setIsExtendDialogOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserDataType>(user);
+  const [isTriggeringScan, setIsTriggeringScan] = useState(false);
+  const { idToken } = useUser();
 
   // Listen to real-time updates for this specific user
   useEffect(() => {
@@ -62,6 +71,51 @@ export default function UserDetailsDialog({ user, open, onOpenChange }: UserDeta
   }, [user, open]);
 
   const isProOrEnterprise = currentUser.subscription.plan === "pro" || currentUser.subscription.plan === "enterprise";
+  const isActive = currentUser.subscription.status === "active";
+  const canTriggerScan = isProOrEnterprise && isActive && !currentUser.isScanning && !isTriggeringScan;
+
+  function getTooltipMessage(): string {
+    if (isTriggeringScan) {
+      return "Scan is being triggered...";
+    }
+    if (currentUser.isScanning) {
+      return "A scan is already running for this user.";
+    }
+    if (!isProOrEnterprise) {
+      return "Scans can only be triggered for Pro or Enterprise users.";
+    }
+    if (!isActive) {
+      return "User subscription is not active. Activate the subscription to trigger scans.";
+    }
+    return "Trigger a manual scan for this user";
+  }
+
+  async function handleTriggerScan() {
+    if (!idToken) {
+      toast.error("You are not authorized to perform this action.");
+      return;
+    }
+
+    try {
+      setIsTriggeringScan(true);
+
+      await ky.post(ADMIN_TRIGGER_SCAN_URL, {
+        json: {
+          userId: currentUser.id,
+        },
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+        timeout: 10000,
+      });
+
+      toast.success("Scan triggered successfully.");
+    } catch (error) {
+      toastError(error);
+    } finally {
+      setIsTriggeringScan(false);
+    }
+  }
 
   return (
     <>
@@ -203,7 +257,31 @@ export default function UserDetailsDialog({ user, open, onOpenChange }: UserDeta
 
             {/* Status Information */}
             <div className="space-y-3 border-t pt-4">
-              <h3 className="text-lg font-semibold">Status</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Status</h3>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button variant="outline" size="sm" onClick={handleTriggerScan} disabled={!canTriggerScan}>
+                        {isTriggeringScan ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Triggering...
+                          </>
+                        ) : (
+                          <>
+                            <Play className="mr-2 h-4 w-4" />
+                            Trigger Scan
+                          </>
+                        )}
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{getTooltipMessage()}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-1">
                   <div className="text-muted-foreground flex items-center gap-2 text-sm">

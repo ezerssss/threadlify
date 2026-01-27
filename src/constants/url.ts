@@ -22,3 +22,4 @@ export const UPDATE_SUBREDDITS_URL = `${BACKEND_BASE_URL}/user/subreddits`;
 
 export const ADMIN_UPDATE_SUBSCRIPTION_URL = `${BACKEND_BASE_URL}/admin/user/subscription`;
 export const ADMIN_EXTEND_SUBSCRIPTION_URL = `${BACKEND_BASE_URL}/admin/user/subscription/extend`;
+export const ADMIN_TRIGGER_SCAN_URL = `${BACKEND_BASE_URL}/admin/user/scan/run`;
