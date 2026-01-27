@@ -457,13 +457,21 @@ export function AccountOverview() {
                   )}
                 </div>
                 {editingTab === "recency" ? (
-                  <Input
-                    autoFocus
-                    type="number"
-                    min={1}
-                    value={editData.maxScrapeRecencyInMonths}
-                    onChange={(e) => updateEditField("maxScrapeRecencyInMonths", Number(e.target.value))}
-                  />
+                  <div className="space-y-1.5">
+                    <Input
+                      autoFocus
+                      type="number"
+                      min={1}
+                      max={2}
+                      value={editData.maxScrapeRecencyInMonths}
+                      onChange={(e) => {
+                        const value = Number(e.target.value);
+                        const clampedValue = Math.min(Math.max(value, 1), 2);
+                        updateEditField("maxScrapeRecencyInMonths", clampedValue);
+                      }}
+                    />
+                    <p className="text-muted-foreground text-xs">Maximum: 2 months</p>
+                  </div>
                 ) : (
                   <p className="text-sm">{formData.maxScrapeRecencyInMonths} month(s)</p>
                 )}
