@@ -1,11 +1,9 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
-
-import { usePathname, useRouter } from "next/navigation";
-
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import { usePathname, useRouter } from "next/navigation";
+import { ReactNode, useEffect, useState } from "react";
 import { PuffLoader } from "react-spinners";
 
 import UnauthorizedPage from "@/app/unauthorized/page";
@@ -14,10 +12,10 @@ import { auth } from "@/firebase";
 import useUser from "@/hooks/use-user";
 
 interface PropsInterface {
-  children: JSX.Element;
+  children: ReactNode;
 }
 
-function ProtectedRouteWrapper(props: PropsInterface): JSX.Element {
+function ProtectedRouteWrapper(props: PropsInterface) {
   const { children } = props;
 
   const router = useRouter();
