@@ -36,6 +36,11 @@ export default function Layout({ children }: Readonly<{ children: ReactNode }>) 
           data-content-layout={contentLayout}
           className={cn(
             "data-[content-layout=centered]:!mx-auto data-[content-layout=centered]:max-w-screen-2xl",
+            // On larger screens with expanded sidebar, reduce max-width to account for sidebar space
+            "min-[120rem]:peer-data-[variant=inset]:peer-data-[state=expanded]:data-[content-layout=centered]:max-w-[calc(100vw-var(--sidebar-width))]",
+            // On larger screens (1920px+) with collapsed sidebar, increase max-width to reduce empty space
+            // Accounts for collapsed sidebar (~4rem) + margins, allowing content to use more available space
+            "min-[120rem]:peer-data-[variant=inset]:peer-data-[state=collapsed]:data-[content-layout=centered]:max-w-[calc(100vw-4rem)]",
             // Adds right margin for inset sidebar in centered layout up to 113rem.
             // On wider screens with collapsed sidebar, removes margin and sets margin auto for alignment.
             "max-[113rem]:peer-data-[variant=inset]:!mr-2 min-[101rem]:peer-data-[variant=inset]:peer-data-[state=collapsed]:!mr-auto",
