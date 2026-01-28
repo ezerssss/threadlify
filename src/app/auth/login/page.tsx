@@ -1,8 +1,14 @@
 "use client";
 
+import { Suspense } from "react";
+
 import { APP_CONFIG } from "@/config/app-config";
 
 import { GoogleButton } from "../_components/social-auth/google-button";
+
+function GoogleButtonWrapper() {
+  return <GoogleButton className="w-full cursor-pointer" />;
+}
 
 export default function LoginPage() {
   return (
@@ -13,7 +19,9 @@ export default function LoginPage() {
           <p className="text-muted-foreground text-sm">Please enter your details to login.</p>
         </div>
         <div className="space-y-4">
-          <GoogleButton className="w-full cursor-pointer" />
+          <Suspense fallback={<div className="bg-muted h-10 w-full animate-pulse rounded-md" />}>
+            <GoogleButtonWrapper />
+          </Suspense>
         </div>
       </div>
 
