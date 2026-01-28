@@ -69,7 +69,7 @@ export function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} action={undefined} noValidate className="space-y-4">
         <FormField
           control={form.control}
           name="email"
