@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
-
-import { useRouter, useSearchParams } from "next/navigation";
-
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { siGoogle } from "simple-icons";
 import { toast } from "sonner";
 

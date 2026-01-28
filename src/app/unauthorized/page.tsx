@@ -1,6 +1,7 @@
-import Link from "next/link";
+"use client";
 
 import { Lock } from "lucide-react";
+import Link from "next/link";
 
 export default function UnauthorizedPage() {
   return (
