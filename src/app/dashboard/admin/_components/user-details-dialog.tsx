@@ -1,7 +1,4 @@
-/* eslint-disable max-lines */
 "use client";
-
-import { useState, useEffect } from "react";
 
 import { doc, onSnapshot } from "firebase/firestore";
 import ky from "ky";
@@ -20,6 +17,7 @@ import {
   Play,
   Loader2,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +33,7 @@ import { UserDataType } from "@/types/user";
 
 import ChangeSubscriptionDialog from "./change-subscription-dialog";
 import ExtendSubscriptionDialog from "./extend-subscription-dialog";
+import { UserLogs } from "./user-logs";
 
 interface UserDetailsDialogProps {
   user: UserDataType;
@@ -78,7 +77,6 @@ function ProcessStatusDisplay({
   );
 }
 
-// eslint-disable-next-line complexity
 export default function UserDetailsDialog({ user, open, onOpenChange }: UserDetailsDialogProps) {
   const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] = useState(false);
   const [isExtendDialogOpen, setIsExtendDialogOpen] = useState(false);
@@ -469,6 +467,12 @@ export default function UserDetailsDialog({ user, open, onOpenChange }: UserDeta
                   <p className="text-lg font-semibold">{currentUser.totalAICalls}</p>
                 </div>
               </div>
+            </div>
+
+            {/* Logs */}
+            <div className="space-y-3 border-t pt-4">
+              <h3 className="text-lg font-semibold">User Logs</h3>
+              <UserLogs userId={currentUser.id} />
             </div>
           </div>
         </DialogContent>

@@ -4,11 +4,13 @@ import { SubscriptionPlanEnum } from "./subscription";
 
 export const ScanLogSchema = z.object({
   id: z.string().min(1),
+  aiCount: z.number().int().nonnegative(),
   logType: z.literal("scan"),
   scanType: z.string().min(1),
   userId: z.string().min(1),
   postsAnalyzed: z.number().int().nonnegative(),
   relevantPosts: z.number().int().nonnegative(),
+  failedPostCount: z.number().int().nonnegative(),
   durationMs: z.number().nonnegative(),
   date: z.iso.datetime(),
   status: z.enum(["success", "failed"]),
