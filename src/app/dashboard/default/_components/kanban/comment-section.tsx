@@ -1,8 +1,7 @@
-import { useState } from "react";
-
 import ReadMoreArea from "@foxeian/react-read-more";
 import ky from "ky";
 import { CopyIcon, InfoIcon } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -27,7 +26,6 @@ interface PropsInterface {
   updateSinglePost: (postId: string, newData: any) => void;
 }
 
-// eslint-disable-next-line complexity
 function CommentSection(props: PropsInterface) {
   const {
     recommendedReply,
@@ -42,7 +40,7 @@ function CommentSection(props: PropsInterface) {
   } = props;
   const setActivePost = useKanbanStore((state) => state.setActivePost);
 
-  const { idToken, userData } = useUser();
+  const { idToken, userData, claims } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [isDMLoading, setIsDMLoading] = useState(false);
 
@@ -71,7 +69,8 @@ function CommentSection(props: PropsInterface) {
     }
 
     const { subscription } = userData;
-    const isUserFreeOrNotActive = subscription.plan === "free" || subscription.status !== "active";
+    const isUserFreeOrNotActive =
+      (subscription.plan === "free" || subscription.status !== "active") && !claims?.isAdmin;
     if (isUserFreeOrNotActive) {
       toast.error("You can't tweak a reply on the free plan. Upgrade your plan to access this feature.");
       return;
@@ -133,7 +132,8 @@ function CommentSection(props: PropsInterface) {
     }
 
     const { subscription } = userData;
-    const isUserFreeOrNotActive = subscription.plan === "free" || subscription.status !== "active";
+    const isUserFreeOrNotActive =
+      (subscription.plan === "free" || subscription.status !== "active") && !claims?.isAdmin;
     if (isUserFreeOrNotActive) {
       toast.error("You can't tweak a DM on the free plan. Upgrade your plan to access this feature.");
       return;

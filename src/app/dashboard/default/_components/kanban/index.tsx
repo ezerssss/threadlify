@@ -1,8 +1,7 @@
 "use client";
 
-import { memo, useRef, useState } from "react";
-
 import { DragDropContext, Draggable, Droppable, DragStart } from "@hello-pangea/dnd";
+import { memo, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { UpgradeOverlay } from "@/components/upgrade-overlay";
@@ -22,7 +21,7 @@ const COLUMN_IDS = ["new", "inProgress", "done"];
 const COLUMN_COLOR: Record<string, string> = { new: "bg-green-500", inProgress: "bg-yellow-500", done: "bg-gray-400" };
 
 function Kanban() {
-  const { userData } = useUser();
+  const { userData, claims } = useUser();
   const [isDragging, setIsDragging] = useState(false);
   const dragStateRef = useRef(false);
   const {
@@ -43,8 +42,8 @@ function Kanban() {
     return <KanbanSkeleton />;
   }
 
-  // Lock content if subscription is free or expired
-  const isSubscriptionLocked = userData.subscription.plan === "free";
+  // Lock content if subscription is free or expired (admins bypass via custom claim)
+  const isSubscriptionLocked = userData.subscription.plan === "free" && !claims?.isAdmin;
   if (isSubscriptionLocked) {
     return (
       <UpgradeOverlay

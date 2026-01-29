@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-
 import { collection, doc, onSnapshot } from "firebase/firestore";
 import * as LucideIcons from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectItem, SelectContent, SelectValue } from "@/components/ui/select";
@@ -19,9 +18,8 @@ import { INSIGHT_CATEGORIES } from "./insight-categories";
 import InsightModal from "./insight-modal";
 import { InsightsSkeleton } from "./insights-skeleton";
 
-// eslint-disable-next-line complexity
 export function ScanResultsCards() {
-  const { user, userData } = useUser();
+  const { user, userData, claims } = useUser();
   const [insights, setInsights] = useState<ActionableObjectivesType[]>([]);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<"posts" | "az" | "za">("posts");
@@ -32,8 +30,8 @@ export function ScanResultsCards() {
 
   const PAGE_SIZE = 9;
 
-  // Lock content if subscription is free or expired
-  const isSubscriptionLocked = userData?.subscription.plan === "free";
+  // Lock content if subscription is free or expired (admins bypass via custom claim)
+  const isSubscriptionLocked = userData?.subscription.plan === "free" && !claims?.isAdmin;
 
   // Load from Firestore (only if subscription is not locked)
   useEffect(() => {
