@@ -1,10 +1,10 @@
 import { useState } from "react";
-
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface PropsInterface {
@@ -13,14 +13,19 @@ interface PropsInterface {
   onRegenerate: (prompt: string) => void;
   copyButtonText?: string;
   tweakButtonText?: string;
+  /** Clarifies that tweak only affects this reply/DM, not future ones. */
+  tweakButtonTooltip?: string;
 }
+
+const DEFAULT_TWEAK_TOOLTIP = "Rewrite this reply only. Doesn't change your default tone.";
 
 function ReplyActions({
   handleCopy,
   onRegenerate,
   disabled,
   copyButtonText = "Copy and open thread",
-  tweakButtonText = "Tweak reply",
+  tweakButtonText = "Tweak Reply",
+  tweakButtonTooltip = DEFAULT_TWEAK_TOOLTIP,
 }: PropsInterface) {
   const [showTweakBox, setShowTweakBox] = useState(false);
   const [tweakText, setTweakText] = useState("");
@@ -57,16 +62,25 @@ function ReplyActions({
           {copyButtonText}
         </Button>
 
-        <Button
-          variant={showTweakBox ? "default" : "outline"}
-          size="sm"
-          className="flex-1"
-          onClick={handleRegenerateClick}
-          disabled={disabled}
-        >
-          {disabled && <Spinner />}
-          {showTweakBox ? "Submit tweak" : tweakButtonText}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="flex flex-1">
+              <Button
+                variant={showTweakBox ? "default" : "outline"}
+                size="sm"
+                className="w-full"
+                onClick={handleRegenerateClick}
+                disabled={disabled}
+              >
+                {disabled && <Spinner />}
+                {showTweakBox ? "Submit tweak" : tweakButtonText}
+              </Button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-[260px]">
+            <p>{tweakButtonTooltip}</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {showTweakBox && (

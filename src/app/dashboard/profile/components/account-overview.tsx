@@ -1,12 +1,9 @@
-/* eslint-disable max-lines */
 "use client";
-
-import { useEffect, useRef, useState } from "react";
-
-import Link from "next/link";
 
 import ky from "ky";
 import { EditIcon, InfoIcon, LinkIcon, PlusIcon, SaveIcon, TrashIcon, XIcon } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { parse } from "tldts";
 
@@ -23,17 +20,23 @@ import { EDIT_PROFILE_URL } from "@/constants/url";
 import useRelevantPostsCount from "@/hooks/use-relevant-posts-count";
 import useUser from "@/hooks/use-user";
 import { toastError } from "@/lib/utils";
+import { useKanbanStore } from "@/stores/kanban";
 import { EditUserProfileType } from "@/types/user";
 
 import ManageSubredditsDialog from "./manage-subreddits-dialog";
 import { AccountOverViewSkeleton } from "./skeleton/account-overview-skeleton";
 
-// eslint-disable-next-line complexity
 export function AccountOverview() {
   const { userData, idToken } = useUser();
   const { count: relevantPostsCount, isLoading: isLoadingPostsCount } = useRelevantPostsCount();
   const [isLoading, setIsLoading] = useState(false);
   const [editingTab, setEditingTab] = useState<string | null>(null);
+  const validTabValues = new Set(["description", "audience", "strategy", "replyTone", "keywords", "recency"]);
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    if (typeof globalThis.window === "undefined") return "description";
+    const hash = globalThis.window.location.hash.slice(1);
+    return hash && validTabValues.has(hash) ? hash : "description";
+  });
   const [formData, setFormData] = useState<EditUserProfileType>({
     name: "",
     description: "",
@@ -53,6 +56,25 @@ export function AccountOverview() {
     maxScrapeRecencyInMonths: 1,
   });
   const originalDataRef = useRef<EditUserProfileType | null>(null);
+  const setActivePost = useKanbanStore((state) => state.setActivePost);
+  const setActivePostIndex = useKanbanStore((state) => state.setActivePostIndex);
+  const setIsOpen = useKanbanStore((state) => state.setIsOpen);
+
+  // Sync active tab from URL hash (e.g. /dashboard/profile#replyTone)
+  useEffect(() => {
+    const syncFromHash = () => {
+      const hash = globalThis.window.location.hash.slice(1);
+      if (hash && validTabValues.has(hash)) {
+        setActivePost(null);
+        setActivePostIndex(null);
+        setIsOpen(false);
+        setActiveTab(hash);
+      }
+    };
+    syncFromHash();
+    globalThis.window.addEventListener("hashchange", syncFromHash);
+    return () => globalThis.window.removeEventListener("hashchange", syncFromHash);
+  }, []);
 
   // Sync form data with userData when it changes
   useEffect(() => {
@@ -174,7 +196,14 @@ export function AccountOverview() {
           <Separator />
 
           {/* Tabs for Editing */}
-          <Tabs defaultValue="description" className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => {
+              setActiveTab(v);
+              if (typeof globalThis.window !== "undefined") globalThis.window.location.hash = v;
+            }}
+            className="w-full"
+          >
             <TabsList className="mb-4">
               <TabsTrigger
                 value="description"

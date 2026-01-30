@@ -1,8 +1,8 @@
-import { useState } from "react";
-
 import ReadMoreArea from "@foxeian/react-read-more";
 import ky from "ky";
 import { CopyIcon, InfoIcon } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -28,7 +28,6 @@ interface PropsInterface {
   updateSinglePost: (postId: string, newData: any) => void;
 }
 
-// eslint-disable-next-line complexity
 function CommentSection(props: PropsInterface) {
   const {
     managedUserId,
@@ -190,7 +189,11 @@ function CommentSection(props: PropsInterface) {
           <div className="bg-muted/30 flex items-start gap-2 rounded-md border p-2.5">
             <InfoIcon size={14} className="text-muted-foreground mt-0.5 shrink-0" />
             <p className="text-muted-foreground text-xs">
-              You can customize your reply tone for future replies in your profile settings.
+              You can customize your reply tone for future replies in your{" "}
+              <Link href="/dashboard/profile#replyTone" className="underline underline-offset-2">
+                profile settings
+              </Link>
+              .
             </p>
           </div>
         </div>
@@ -269,6 +272,7 @@ function CommentSection(props: PropsInterface) {
             <ReplyActions
               copyButtonText="Copy message"
               tweakButtonText="Tweak DM"
+              tweakButtonTooltip="Rewrite this DM only. Doesn't change your default tone."
               disabled={isDMLoading}
               handleCopy={handleDMCopy}
               onRegenerate={(tweak) => handleDMTweak(tweak, postId)}
