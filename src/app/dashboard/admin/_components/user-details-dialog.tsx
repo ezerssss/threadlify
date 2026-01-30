@@ -406,6 +406,16 @@ export default function UserDetailsDialog({ user, open, onOpenChange }: UserDeta
                     ))}
                   </div>
                 </div>
+
+                {currentUser.profile.notes && (
+                  <div className="space-y-1">
+                    <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                      <FileText className="h-4 w-4" />
+                      <span>Notes</span>
+                    </div>
+                    <p className="text-sm whitespace-pre-wrap">{currentUser.profile.notes}</p>
+                  </div>
+                )}
               </div>
             </div>
 

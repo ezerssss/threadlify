@@ -1,11 +1,9 @@
-/* eslint-disable max-lines */
-import { useState, useEffect } from "react";
-
 import { DropResult } from "@hello-pangea/dnd";
 import { arrayMoveImmutable } from "array-move";
 import { collection, doc, getDoc, getDocs, onSnapshot, query, Unsubscribe, where } from "firebase/firestore";
 import { generateKeyBetween } from "fractional-indexing";
 import ky from "ky";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 import { USERS_COLLECTION_REF } from "@/constants/firebase";
@@ -128,6 +126,8 @@ function useKanbanData() {
   const [data, setData] = useState<KanbanDataInterface>({ ...defaultData });
   const setActivePost = useKanbanStore((state) => state.setActivePost);
   const setActivePostIndex = useKanbanStore((state) => state.setActivePostIndex);
+  const setIsOpen = useKanbanStore((state) => state.setIsOpen);
+  const setFeedbackSheetPostId = useKanbanStore((state) => state.setFeedbackSheetPostId);
 
   // Haha any
   function updateSinglePost(postId: string, newData: any) {
@@ -414,7 +414,6 @@ function useKanbanData() {
     return () => unsub();
   }, [user, userData?.id, sortBy.new.field, sortBy.new.direction]);
 
-  // eslint-disable-next-line complexity
   async function handleMoveOnSameColumn(result: DropResult) {
     const { source, destination, draggableId } = result;
 
@@ -490,7 +489,6 @@ function useKanbanData() {
     }
   }
 
-  // eslint-disable-next-line complexity
   async function handleMoveOnDifferentColumn(result: ChangeColumnInterface) {
     const { source, destination, draggableId } = result;
 
@@ -587,40 +585,43 @@ function useKanbanData() {
     }
   }
 
+  function removePostFromKanban(postId: string) {
+    setData((prev) => {
+      const post = prev.posts[postId];
+      if (!post) {
+        return prev;
+      }
+
+      const sourceColumnId = post.boardColumnId;
+      const sourcePostIds = [...prev.columns[sourceColumnId].postIds];
+      const sourceIndex = sourcePostIds.findIndex((id) => id === postId);
+
+      if (sourceIndex === -1) {
+        return prev;
+      }
+
+      sourcePostIds.splice(sourceIndex, 1);
+
+      return {
+        ...prev,
+        columns: {
+          ...prev.columns,
+          [sourceColumnId]: {
+            ...prev.columns[sourceColumnId],
+            postIds: sourcePostIds,
+          },
+        },
+      };
+    });
+  }
+
   async function handleTrashDrop(postId: string) {
     if (!idToken) {
       return;
     }
 
     try {
-      // Remove post from local state - defer to next frame to ensure drag library cleanup completes
-      setData((prev) => {
-        const post = prev.posts[postId];
-        if (!post) {
-          return prev;
-        }
-
-        const sourceColumnId = post.boardColumnId;
-        const sourcePostIds = [...prev.columns[sourceColumnId].postIds];
-        const sourceIndex = sourcePostIds.findIndex((id) => id === postId);
-
-        if (sourceIndex === -1) {
-          return prev;
-        }
-
-        sourcePostIds.splice(sourceIndex, 1);
-
-        return {
-          ...prev,
-          columns: {
-            ...prev.columns,
-            [sourceColumnId]: {
-              ...prev.columns[sourceColumnId],
-              postIds: sourcePostIds,
-            },
-          },
-        };
-      });
+      removePostFromKanban(postId);
 
       // Call backend to train the server
       await ky.post(KANBAN_TRASH_URL, {
@@ -636,6 +637,16 @@ function useKanbanData() {
     }
   }
 
+  function handleNotRelevantFeedbackSuccess(postId: string) {
+    removePostFromKanban(postId);
+    const activePost = useKanbanStore.getState().activePost;
+    if (activePost?.id === postId) {
+      setIsOpen(false);
+      setActivePost(null);
+      setActivePostIndex(null);
+    }
+  }
+
   function handleOnDragEnd(result: DropResult) {
     const { source, destination } = result;
 
@@ -647,6 +658,12 @@ function useKanbanData() {
     // Check if dropped in trash
     if (destination.droppableId === "trash") {
       handleTrashDrop(result.draggableId);
+      return;
+    }
+
+    // Check if dropped in feedback zone
+    if (destination.droppableId === "feedback") {
+      setFeedbackSheetPostId(result.draggableId);
       return;
     }
 
@@ -670,6 +687,7 @@ function useKanbanData() {
     handleFilterChange,
     updateSinglePost,
     handleTrashDrop,
+    handleNotRelevantFeedbackSuccess,
   };
 }
 

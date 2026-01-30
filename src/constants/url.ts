@@ -7,6 +7,8 @@ export const GENERATE_STRATEGY_URL = `${BACKEND_BASE_URL}/onboarding/generate-st
 
 export const KANBAN_CHANGE_URL = `${BACKEND_BASE_URL}/kanban/change`;
 export const KANBAN_TRASH_URL = `${BACKEND_BASE_URL}/kanban/trash`;
+export const KANBAN_NOT_RELEVANT_FEEDBACK_URL = `${BACKEND_BASE_URL}/kanban/not-relevant/feedback`;
+export const KANBAN_NOT_RELEVANT_OPTIONS_URL = `${BACKEND_BASE_URL}/kanban/not-relevant/feedback/options`;
 export const POST_SEEN_URL = `${BACKEND_BASE_URL}/kanban/seen`;
 
 export const SCAN_REQUEST_URL = `${BACKEND_BASE_URL}/scan/`;

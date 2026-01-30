@@ -31,7 +31,7 @@ export function AccountOverview() {
   const { count: relevantPostsCount, isLoading: isLoadingPostsCount } = useRelevantPostsCount();
   const [isLoading, setIsLoading] = useState(false);
   const [editingTab, setEditingTab] = useState<string | null>(null);
-  const validTabValues = new Set(["description", "audience", "strategy", "replyTone", "keywords", "recency"]);
+  const validTabValues = new Set(["description", "audience", "strategy", "replyTone", "keywords", "recency", "notes"]);
   const [activeTab, setActiveTab] = useState<string>(() => {
     if (typeof globalThis.window === "undefined") return "description";
     const hash = globalThis.window.location.hash.slice(1);
@@ -45,6 +45,7 @@ export function AccountOverview() {
     replyTone: "",
     keywords: [],
     maxScrapeRecencyInMonths: 1,
+    notes: "",
   });
   const [editData, setEditData] = useState<EditUserProfileType>({
     name: "",
@@ -54,6 +55,7 @@ export function AccountOverview() {
     replyTone: "",
     keywords: [],
     maxScrapeRecencyInMonths: 1,
+    notes: "",
   });
   const originalDataRef = useRef<EditUserProfileType | null>(null);
   const setActivePost = useKanbanStore((state) => state.setActivePost);
@@ -80,7 +82,7 @@ export function AccountOverview() {
   useEffect(() => {
     if (userData?.profile) {
       const { name, profile, strategy, replyTone, maxScrapeRecencyInMonths } = userData;
-      const { description, audience, keywords } = profile;
+      const { description, audience, keywords, notes } = profile;
       const initialData: EditUserProfileType = {
         name,
         description,
@@ -89,6 +91,7 @@ export function AccountOverview() {
         replyTone,
         keywords: [...keywords],
         maxScrapeRecencyInMonths,
+        notes: notes ?? "",
       };
       setFormData(initialData);
       originalDataRef.current = initialData;
@@ -246,6 +249,13 @@ export function AccountOverview() {
                 className="data-[state=active]:bg-white"
               >
                 Max Recency
+              </TabsTrigger>
+              <TabsTrigger
+                value="notes"
+                disabled={isLoading || editingTab !== null}
+                className="data-[state=active]:bg-white"
+              >
+                Notes
               </TabsTrigger>
             </TabsList>
 
@@ -503,6 +513,56 @@ export function AccountOverview() {
                   </div>
                 ) : (
                   <p className="text-sm">{formData.maxScrapeRecencyInMonths} month(s)</p>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="notes" className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Label>Notes</Label>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <InfoIcon size={14} className="text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Personal notes or additional context about your business that helps improve recommendations.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  {editingTab === "notes" ? (
+                    <div className="flex gap-2">
+                      <Button onClick={handleCancel} variant="outline" size="sm" disabled={isLoading}>
+                        <XIcon className="mr-2 size-4" />
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSave} size="sm" disabled={isLoading}>
+                        <SaveIcon className="mr-2 size-4" />
+                        Save
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button onClick={() => handleEdit("notes")} variant="outline" size="sm">
+                      <EditIcon className="mr-2 size-4" />
+                      Edit
+                    </Button>
+                  )}
+                </div>
+                {editingTab === "notes" ? (
+                  <Textarea
+                    autoFocus
+                    value={editData.notes}
+                    onChange={(e) => updateEditField("notes", e.target.value)}
+                    placeholder="Add any additional notes or context about your business..."
+                    rows={6}
+                  />
+                ) : formData.notes ? (
+                  <p className="text-sm whitespace-pre-wrap">{formData.notes}</p>
+                ) : (
+                  <p className="text-muted-foreground text-sm italic">No notes added yet.</p>
                 )}
               </div>
             </TabsContent>

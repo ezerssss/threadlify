@@ -1,9 +1,14 @@
-import { memo, useCallback, useEffect, useState } from "react";
-
-import Link from "next/link";
-
 import ky from "ky";
-import { CheckCircleIcon, ExternalLinkIcon, SparkleIcon, Trash2Icon } from "lucide-react";
+import {
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ExternalLinkIcon,
+  MessageCircleIcon,
+  SparkleIcon,
+  Trash2Icon,
+} from "lucide-react";
+import Link from "next/link";
+import { memo, useCallback, useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import { useWindowSize } from "react-use";
 import { siReddit } from "simple-icons";
@@ -12,6 +17,12 @@ import { SimpleIcon } from "@/components/simple-icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Spinner } from "@/components/ui/spinner";
 import { POST_SEEN_URL } from "@/constants/url";
 import useManagedUser from "@/hooks/use-managed-user";
@@ -41,6 +52,7 @@ function PopUpContent(props: PropsInterface) {
   const setIsOpen = useKanbanStore((state) => state.setIsOpen);
   const setActivePost = useKanbanStore((state) => state.setActivePost);
   const setActivePostIndex = useKanbanStore((state) => state.setActivePostIndex);
+  const setFeedbackSheetPostId = useKanbanStore((state) => state.setFeedbackSheetPostId);
   const { height } = useWindowSize();
 
   // Mark post as seen when opened
@@ -163,25 +175,48 @@ function PopUpContent(props: PropsInterface) {
                   </Link>
                 </Badge>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleMarkAsNotRelevant}
-                disabled={isTrashing}
-                className="h-6 gap-1.5 text-xs text-gray-600 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:bg-red-950/20 dark:hover:text-red-400"
-              >
-                {isTrashing ? (
-                  <>
-                    <Spinner className="h-3! w-3!" />
-                    Removing...
-                  </>
-                ) : (
-                  <>
-                    <Trash2Icon className="h-3! w-3!" />
-                    Not relevant
-                  </>
-                )}
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isTrashing}
+                    className="h-6 gap-1.5 text-xs text-gray-600 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:bg-red-950/20 dark:hover:text-red-400"
+                  >
+                    {isTrashing ? (
+                      <>
+                        <Spinner className="h-3! w-3!" />
+                        Removing...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2Icon className="h-3! w-3!" />
+                        Not relevant
+                        <ChevronDownIcon className="h-3! w-3!" />
+                      </>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem
+                    onClick={handleMarkAsNotRelevant}
+                    className="gap-2 focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-950/20 dark:focus:text-red-400"
+                  >
+                    <Trash2Icon className="h-4 w-4 shrink-0" />
+                    <div className="text-left">
+                      <p className="font-medium">Dismiss</p>
+                      <p className="text-muted-foreground text-[10px]">Not for me, remove immediately</p>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFeedbackSheetPostId(post.id)} className="gap-2">
+                    <MessageCircleIcon className="h-4 w-4 shrink-0 text-amber-500" />
+                    <div className="text-left">
+                      <p className="font-medium">Give feedback</p>
+                      <p className="text-muted-foreground text-[10px]">Close but not quite, tell us why</p>
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </section>
 
             <section className="scrollbar-thin flex-2 space-y-2 overflow-auto">

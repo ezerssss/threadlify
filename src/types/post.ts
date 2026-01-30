@@ -44,6 +44,7 @@ export const PostSchema = z.object({
   priority: z.string().min(1),
   recommendedReply: RecommendedReplySchema.nullable(),
   recommendedDM: RecommendedDMSchema.nullable(),
+  feedbackOptions: z.string().array().optional(),
 });
 
 export type PostType = z.infer<typeof PostSchema>;
