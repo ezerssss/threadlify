@@ -95,12 +95,6 @@ const defaultFilterState: FilterByInterface = {
   },
 };
 
-const priorityRank: Record<string, number> = {
-  high: 3,
-  medium: 2,
-  low: 1,
-};
-
 const actionRank: Record<string, number> = {
   engage: 2,
   listen: 1,
@@ -152,28 +146,29 @@ function useKanbanData() {
 
         break;
 
-      case "priority":
+      case "priority": {
+        const getFinalScore = (p: PostType) => p.priorityDetails?.finalScore ?? -1;
         sortedPosts.sort((a, b) => {
-          const A = priorityRank[a.priority.toLowerCase()];
-          const B = priorityRank[b.priority.toLowerCase()];
+          const scoreA = getFinalScore(a);
+          const scoreB = getFinalScore(b);
 
-          // Sort by post date or action type
-          if (A === B) {
-            if (actionRank[a.action] !== actionRank[b.action]) {
-              const aAction = actionRank[a.action.toLowerCase()];
-              const bAction = actionRank[b.action.toLowerCase()];
-              return direction === "asc" ? aAction - bAction : bAction - aAction;
-            }
-
-            const A1 = a.postCreatedAt;
-            const B1 = b.postCreatedAt;
-
-            return direction === "asc" ? A1.localeCompare(B1) : B1.localeCompare(A1);
-          } else {
-            return direction === "asc" ? A - B : B - A;
+          if (scoreA !== scoreB) {
+            return direction === "asc" ? scoreA - scoreB : scoreB - scoreA;
           }
+
+          // Tiebreaker: action, then date
+          if (actionRank[a.action] !== actionRank[b.action]) {
+            const aAction = actionRank[a.action.toLowerCase()];
+            const bAction = actionRank[b.action.toLowerCase()];
+            return direction === "asc" ? aAction - bAction : bAction - aAction;
+          }
+
+          const A1 = a.postCreatedAt;
+          const B1 = b.postCreatedAt;
+          return direction === "asc" ? A1.localeCompare(B1) : B1.localeCompare(A1);
         });
         break;
+      }
 
       case "date":
         sortedPosts.sort((a, b) => {

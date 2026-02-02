@@ -45,6 +45,19 @@ export const PostSchema = z.object({
   recommendedReply: RecommendedReplySchema.nullable(),
   recommendedDM: RecommendedDMSchema.nullable(),
   feedbackOptions: z.string().array().optional(),
+
+  priorityDetails: z.object({
+    intentStrength: z.number(),
+    problemAlignment: z.number(),
+    competitiveContext: z.number(),
+    painDepth: z.number(),
+    quality: z.number(),
+    timeScore: z.number(),
+    socialScore: z.number(),
+    aiScore: z.number(),
+    finalScore: z.number(),
+    reasons: z.string().array(),
+  }),
 });
 
 export type PostType = z.infer<typeof PostSchema>;

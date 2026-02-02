@@ -13,6 +13,7 @@ import Markdown from "react-markdown";
 import { useWindowSize } from "react-use";
 import { siReddit } from "simple-icons";
 
+import { PriorityBadge } from "@/components/priority-badge";
 import { SimpleIcon } from "@/components/simple-icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -132,9 +133,6 @@ function PopUpContent(props: PropsInterface) {
     return null;
   }
 
-  const notHighPriorityBadgeColor = post.priority === "medium" ? "default" : "secondary";
-  const badgeColor = post.priority === "high" ? "destructive" : notHighPriorityBadgeColor;
-
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="bg-card min-w-[95%] p-0">
@@ -156,9 +154,11 @@ function PopUpContent(props: PropsInterface) {
 
             <section className="flex w-full flex-wrap items-center justify-between pr-3">
               <div className="flex flex-wrap gap-2">
-                <Badge variant={badgeColor} className="h-6 shrink-0 rounded-sm px-1.5 capitalize">
-                  {post.priority}
-                </Badge>
+                <PriorityBadge
+                  priority={post.priority}
+                  reasons={post.priorityDetails?.reasons}
+                  className="h-6 shrink-0 rounded-sm px-1.5 capitalize"
+                />
 
                 <Badge variant="secondary" className="h-6 shrink-0 rounded-sm px-1.5 capitalize">
                   {post.action}

@@ -1,8 +1,8 @@
-import { memo, useCallback } from "react";
-
 import { CheckCircleIcon } from "lucide-react";
+import { memo, useCallback } from "react";
 import { siReddit } from "simple-icons";
 
+import { PriorityBadge } from "@/components/priority-badge";
 import { SimpleIcon } from "@/components/simple-icon";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatISODate } from "@/lib/utils";
@@ -19,9 +19,6 @@ function KanbanCard(props: PropsInteface) {
   const setActivePost = useKanbanStore((state) => state.setActivePost);
   const setActivePostIndex = useKanbanStore((state) => state.setActivePostIndex);
   const setIsOpen = useKanbanStore((state) => state.setIsOpen);
-
-  const notHighPriorityBadgeColor = post.priority === "medium" ? "default" : "secondary";
-  const badgeColor = post.priority === "high" ? "destructive" : notHighPriorityBadgeColor;
 
   const handleClick = useCallback(() => {
     setActivePost(post);
@@ -53,9 +50,11 @@ function KanbanCard(props: PropsInteface) {
         </Badge>
 
         <div className="flex items-end gap-1">
-          <Badge variant={badgeColor} className="h-5 shrink-0 rounded-sm px-1.5 text-[11px] capitalize">
-            {post.priority}
-          </Badge>
+          <PriorityBadge
+            priority={post.priority}
+            reasons={post.priorityDetails?.reasons}
+            className="h-5 shrink-0 rounded-sm px-1.5 text-[11px] capitalize"
+          />
 
           <Badge variant="secondary" className="h-5 shrink-0 rounded-sm px-1.5 text-[11px] capitalize">
             {post.action}
