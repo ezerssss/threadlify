@@ -654,13 +654,18 @@ function useKanbanData(managedUserId: string) {
 
     // Check if dropped in trash
     if (destination.droppableId === "trash") {
+      const post = data.posts[result.draggableId];
+      if (post?.priority === "high") {
+        setFeedbackSheetPostId(result.draggableId, true);
+        return;
+      }
       handleTrashDrop(result.draggableId);
       return;
     }
 
     // Check if dropped in feedback zone
     if (destination.droppableId === "feedback") {
-      setFeedbackSheetPostId(result.draggableId);
+      setFeedbackSheetPostId(result.draggableId, false);
       return;
     }
 

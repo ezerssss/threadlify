@@ -118,6 +118,12 @@ function PopUpContent(props: PropsInterface) {
       return;
     }
 
+    // High-priority post: open feedback sheet instead of trashing so we can learn why
+    if (post.priority === "high") {
+      setFeedbackSheetPostId(post.id, true);
+      return;
+    }
+
     setIsTrashing(true);
     try {
       await handleTrashDrop(post.id);

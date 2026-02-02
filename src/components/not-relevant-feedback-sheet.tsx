@@ -30,6 +30,7 @@ const OPTIONS_PLACEHOLDER = [
 function NotRelevantFeedbackSheet({ onSuccess, managedUserId }: NotRelevantFeedbackSheetProps) {
   const { idToken } = useUser();
   const feedbackSheetPostId = useKanbanStore((s) => s.feedbackSheetPostId);
+  const feedbackSheetIsHighPriorityDismiss = useKanbanStore((s) => s.feedbackSheetIsHighPriorityDismiss);
   const setFeedbackSheetPostId = useKanbanStore((s) => s.setFeedbackSheetPostId);
 
   const [options, setOptions] = useState<string[]>([]);
@@ -126,10 +127,12 @@ function NotRelevantFeedbackSheet({ onSuccess, managedUserId }: NotRelevantFeedb
         <SheetHeader className="p-0 pr-10 pb-2">
           <SheetTitle className="flex items-center gap-2 text-base">
             <MessageCircleIcon className="size-4 shrink-0 text-amber-500" />
-            Why isn&apos;t this relevant?
+            {feedbackSheetIsHighPriorityDismiss ? "This was a high-priority post" : "Why isn't this relevant?"}
           </SheetTitle>
           <SheetDescription id="feedback-sheet-description" className="text-xs">
-            Pick a reason below or add your own.
+            {feedbackSheetIsHighPriorityDismiss
+              ? "Can you tell us why you're dismissing it? It helps us improve your profile and recommendations."
+              : "Pick a reason below or add your own."}
           </SheetDescription>
         </SheetHeader>
 

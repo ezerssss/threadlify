@@ -7,10 +7,12 @@ export type KanbanState = {
   activePostIndex: number | null;
   isOpen: boolean;
   feedbackSheetPostId: string | null;
+  /** When true, feedback sheet was opened because user dismissed a high-priority post */
+  feedbackSheetIsHighPriorityDismiss: boolean;
   setActivePost: (post: PostType | null | ((prev: PostType | null) => PostType | null)) => void;
   setActivePostIndex: (index: number | null) => void;
   setIsOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
-  setFeedbackSheetPostId: (postId: string | null) => void;
+  setFeedbackSheetPostId: (postId: string | null, isHighPriorityDismiss?: boolean) => void;
 };
 
 export const useKanbanStore = create<KanbanState>((set) => ({
@@ -18,6 +20,7 @@ export const useKanbanStore = create<KanbanState>((set) => ({
   activePostIndex: null,
   isOpen: false,
   feedbackSheetPostId: null,
+  feedbackSheetIsHighPriorityDismiss: false,
   setActivePost: (value) => {
     if (typeof value === "function") {
       set((state) => ({ activePost: value(state.activePost) }));
@@ -26,7 +29,11 @@ export const useKanbanStore = create<KanbanState>((set) => ({
     }
   },
   setActivePostIndex: (index) => set({ activePostIndex: index }),
-  setFeedbackSheetPostId: (postId) => set({ feedbackSheetPostId: postId }),
+  setFeedbackSheetPostId: (postId, isHighPriorityDismiss = false) =>
+    set({
+      feedbackSheetPostId: postId,
+      feedbackSheetIsHighPriorityDismiss: Boolean(postId) && isHighPriorityDismiss,
+    }),
   setIsOpen: (value) => {
     if (typeof value === "boolean") {
       set({ isOpen: value });
