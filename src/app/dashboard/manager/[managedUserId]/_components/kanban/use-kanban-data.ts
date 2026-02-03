@@ -411,6 +411,57 @@ function useKanbanData(managedUserId: string) {
     return () => unsub();
   }, [managedUserId, userData?.id, sortBy.new.field, sortBy.new.direction]);
 
+  // Listener for posts that become isHidden: true in "new" column (filter them from state)
+  useEffect(() => {
+    if (!managedUserId || !userData?.id) {
+      return;
+    }
+
+    let unsubHidden: Unsubscribe;
+    (async () => {
+      const userDocRef = doc(USERS_COLLECTION_REF, managedUserId);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        return;
+      }
+
+      const postsCollectionRef = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.POSTS_COLLECTION);
+      const hiddenInNewQuery = query(
+        postsCollectionRef,
+        where("isHidden", "==", true),
+        where("boardColumnId", "==", "new"),
+      );
+
+      unsubHidden = onSnapshot(hiddenInNewQuery, (snapshot) => {
+        const hiddenPostIds = snapshot.docs.map((d) => d.id);
+        if (hiddenPostIds.length === 0) return;
+
+        setData((prev) => {
+          const newColumnPostIds = prev.columns.new.postIds.filter((id) => !hiddenPostIds.includes(id));
+          if (newColumnPostIds.length === prev.columns.new.postIds.length) return prev;
+
+          const newPosts = { ...prev.posts };
+          hiddenPostIds.forEach((id) => delete newPosts[id]);
+
+          return {
+            ...prev,
+            posts: newPosts,
+            columns: {
+              ...prev.columns,
+              new: {
+                ...prev.columns.new,
+                postIds: newColumnPostIds,
+              },
+            },
+          };
+        });
+      });
+    })();
+
+    return () => unsubHidden?.();
+  }, [managedUserId, userData?.id]);
+
   async function handleMoveOnSameColumn(result: DropResult) {
     const { source, destination, draggableId } = result;
 
