@@ -756,6 +756,7 @@ function useKanbanData(managedUserId: string) {
     isLoading,
     isPruningInProgress,
     isProgressActive: !!userData?.processStatus && Object.keys(userData.processStatus).length > 0,
+    isEligibleForPrune: !userData?.lastPruneDate || userData.lastPruneDate < userData.updatedAt,
     triggerPrune,
     sortBy,
     handleSortChange,

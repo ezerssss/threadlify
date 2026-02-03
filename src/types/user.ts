@@ -28,6 +28,9 @@ export const UserDataSchema = z.object({
   isScanning: z.boolean(),
   processStatus: z.record(z.string(), z.string()),
 
+  lastPruneDate: z.string().nullable(),
+  updatedAt: z.string(),
+
   totalScrapedPosts: z.number().nonnegative(),
   totalAICalls: z.number().nonnegative(),
   totalScans: z.number().nonnegative(),

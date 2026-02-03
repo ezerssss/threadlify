@@ -113,8 +113,14 @@ export default function UserDetailsDialog({ user, open, onOpenChange }: UserDeta
   const isProOrEnterprise = currentUser.subscription.plan === "pro" || currentUser.subscription.plan === "enterprise";
   const isActive = currentUser.subscription.status === "active";
   const canTriggerScan = isProOrEnterprise && isActive && !currentUser.isScanning && !isTriggeringScan;
+  const isEligibleForPrune = !currentUser.lastPruneDate || currentUser.lastPruneDate < currentUser.updatedAt;
   const canTriggerPrune =
-    isProOrEnterprise && isActive && !currentUser.isScanning && !isTriggeringPrune && !isTriggeringScan;
+    isProOrEnterprise &&
+    isActive &&
+    isEligibleForPrune &&
+    !currentUser.isScanning &&
+    !isTriggeringPrune &&
+    !isTriggeringScan;
 
   function getTooltipMessage(): string {
     if (isTriggeringScan) {
@@ -171,6 +177,9 @@ export default function UserDetailsDialog({ user, open, onOpenChange }: UserDeta
     }
     if (!isActive) {
       return "User subscription is not active.";
+    }
+    if (!isEligibleForPrune) {
+      return "Last prune was on or after the user's last profile update. Recheck is only needed after they change their profile, strategy, or keywords.";
     }
     return "Recheck new posts in the New column for relevance";
   }

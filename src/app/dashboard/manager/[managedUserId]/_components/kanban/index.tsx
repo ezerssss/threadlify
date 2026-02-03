@@ -37,6 +37,7 @@ function Kanban(props: PropsInterface) {
     isLoading,
     isPruningInProgress,
     isProgressActive,
+    isEligibleForPrune,
     triggerPrune,
     sortBy,
     filterBy,
@@ -76,7 +77,7 @@ function Kanban(props: PropsInterface) {
                         </div>
 
                         <div className="flex items-center gap-1">
-                          {columnId === "new" && (
+                          {columnId === "new" && isEligibleForPrune && (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button

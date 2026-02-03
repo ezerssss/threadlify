@@ -33,6 +33,7 @@ function Kanban() {
     isLoading,
     isPruningInProgress,
     isProgressActive,
+    isEligibleForPrune,
     triggerPrune,
     sortBy,
     filterBy,
@@ -85,7 +86,7 @@ function Kanban() {
                         </div>
 
                         <div className="flex items-center gap-1">
-                          {columnId === "new" && (
+                          {columnId === "new" && isEligibleForPrune && (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
