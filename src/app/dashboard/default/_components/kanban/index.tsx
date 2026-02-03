@@ -1,10 +1,13 @@
 "use client";
 
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
+import { RefreshCw } from "lucide-react";
 import { memo } from "react";
 
 import NotRelevantFeedbackSheet from "@/components/not-relevant-feedback-sheet";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { UpgradeOverlay } from "@/components/upgrade-overlay";
 import useUser from "@/hooks/use-user";
 import { cn } from "@/lib/utils";
@@ -28,6 +31,9 @@ function Kanban() {
     getAllPostsFromColumnId,
     handleOnDragEnd,
     isLoading,
+    isPruningInProgress,
+    isProgressActive,
+    triggerPrune,
     sortBy,
     filterBy,
     handleFilterChange,
@@ -79,6 +85,28 @@ function Kanban() {
                         </div>
 
                         <div className="flex items-center gap-1">
+                          {columnId === "new" && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-muted-foreground h-7 gap-1 px-2"
+                                  disabled={isPruningInProgress || isProgressActive}
+                                  onClick={triggerPrune}
+                                >
+                                  <RefreshCw className={cn("h-3 w-3", isPruningInProgress && "animate-spin")} />
+                                  Recheck
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom" className="max-w-[280px]">
+                                <p>
+                                  Rechecks relevance for unseen posts. Useful after you update your profile, strategy,
+                                  or keywords so recommendations match your latest preferences.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
                           <SortByButton
                             value={sortBy[columnId as keyof SortByInterface]}
                             disabled={isLoading}

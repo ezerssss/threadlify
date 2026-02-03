@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 import { USERS_COLLECTION_REF } from "@/constants/firebase";
-import { KANBAN_CHANGE_URL, KANBAN_TRASH_URL } from "@/constants/url";
+import { KANBAN_CHANGE_URL, KANBAN_PRUNE_URL, KANBAN_TRASH_URL } from "@/constants/url";
 import { FIREBASE_COLLECTION_ENUMS } from "@/enums/firebase";
 import useUser from "@/hooks/use-user";
 import { toastError } from "@/lib/utils";
@@ -117,6 +117,7 @@ function useKanbanData() {
   const [sortBy, setSortBy] = useState<SortByInterface>(defaultSortState);
   const [filterBy, setFilterBy] = useState<FilterByInterface>(defaultFilterState);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPruningInProgress, setIsPruningInProgress] = useState(false);
   const [data, setData] = useState<KanbanDataInterface>({ ...defaultData });
   const setActivePost = useKanbanStore((state) => state.setActivePost);
   const setActivePostIndex = useKanbanStore((state) => state.setActivePostIndex);
@@ -681,6 +682,25 @@ function useKanbanData() {
     }
   }
 
+  async function triggerPrune() {
+    if (!idToken || isPruningInProgress) {
+      return;
+    }
+    try {
+      setIsPruningInProgress(true);
+      await ky.post(KANBAN_PRUNE_URL, {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+      toast.success("Rechecking new posts for relevance…");
+    } catch (error) {
+      toastError(error);
+    } finally {
+      setIsPruningInProgress(false);
+    }
+  }
+
   function handleNotRelevantFeedbackSuccess(postId: string) {
     removePostFromKanban(postId);
     const activePost = useKanbanStore.getState().activePost;
@@ -729,6 +749,9 @@ function useKanbanData() {
     getAllPostsFromColumnId,
     handleOnDragEnd,
     isLoading,
+    isPruningInProgress,
+    isProgressActive: !!userData?.processStatus && Object.keys(userData.processStatus).length > 0,
+    triggerPrune,
     sortBy,
     handleSortChange,
     handleMoveOnDifferentColumn,

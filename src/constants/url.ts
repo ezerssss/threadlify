@@ -10,6 +10,7 @@ export const KANBAN_TRASH_URL = `${BACKEND_BASE_URL}/kanban/trash`;
 export const KANBAN_NOT_RELEVANT_FEEDBACK_URL = `${BACKEND_BASE_URL}/kanban/not-relevant/feedback`;
 export const KANBAN_NOT_RELEVANT_OPTIONS_URL = `${BACKEND_BASE_URL}/kanban/not-relevant/feedback/options`;
 export const POST_SEEN_URL = `${BACKEND_BASE_URL}/kanban/seen`;
+export const KANBAN_PRUNE_URL = `${BACKEND_BASE_URL}/kanban/prune`;
 
 export const SCAN_REQUEST_URL = `${BACKEND_BASE_URL}/scan/`;
 
@@ -25,3 +26,4 @@ export const UPDATE_SUBREDDITS_URL = `${BACKEND_BASE_URL}/user/subreddits`;
 export const ADMIN_UPDATE_SUBSCRIPTION_URL = `${BACKEND_BASE_URL}/admin/user/subscription`;
 export const ADMIN_EXTEND_SUBSCRIPTION_URL = `${BACKEND_BASE_URL}/admin/user/subscription/extend`;
 export const ADMIN_TRIGGER_SCAN_URL = `${BACKEND_BASE_URL}/admin/user/scan/run`;
+export const ADMIN_KANBAN_PRUNE_URL = `${BACKEND_BASE_URL}/admin/user/kanban/prune`;
