@@ -33,7 +33,6 @@ export function ScanResultsCards() {
   const [selectedSignal, setSelectedSignal] = useState<SignalType | null>(null);
   const [selectedLens, setSelectedLens] = useState<SignalLensKey | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilterValue>("all");
-  const hasSetInitialCategory = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const isSubscriptionLocked = userData?.subscription.plan === "free" && !claims?.isAdmin;
@@ -111,12 +110,6 @@ export function ScanResultsCards() {
       [...lensesWithSignals].sort((a, b) => (LENS_DISPLAY[a]?.label ?? a).localeCompare(LENS_DISPLAY[b]?.label ?? b)),
     [lensesWithSignals],
   );
-
-  useEffect(() => {
-    if (hasSetInitialCategory.current || sortedLensesWithSignals.length === 0) return;
-    setCategoryFilter(sortedLensesWithSignals[0]);
-    hasSetInitialCategory.current = true;
-  }, [sortedLensesWithSignals]);
 
   let lensesToShow: SignalLensKey[];
   if (categoryFilter === "all") {
