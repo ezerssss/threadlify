@@ -423,11 +423,14 @@ function useKanbanData() {
         return;
       }
 
+      const date = new Date();
+
       const postsCollectionRef = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.POSTS_COLLECTION);
       const hiddenInNewQuery = query(
         postsCollectionRef,
         where("isHidden", "==", true),
         where("boardColumnId", "==", "new"),
+        where("updatedAt", ">", date.toISOString()),
       );
 
       unsubHidden = onSnapshot(hiddenInNewQuery, (snapshot) => {
