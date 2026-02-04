@@ -13,11 +13,11 @@ export function EmptyObjectives() {
   const isProOrPremium = userData?.subscription.plan === "pro" || userData?.subscription.plan === "enterprise";
 
   function handleContactSupport() {
-    const subject = encodeURIComponent("No Insights");
+    const subject = encodeURIComponent("No Signals");
     const body = encodeURIComponent(
       `Hello Threadlify Support,
 
-I recently upgraded to ${userData?.subscription.plan ?? "pro"} but I'm still not seeing any insights.
+I recently upgraded to ${userData?.subscription.plan ?? "pro"} but I'm still not seeing any market signals.
 
 Could you please help me troubleshoot this issue?
 
@@ -32,11 +32,11 @@ Thank you!`,
         <EmptyMedia variant="icon">
           <IconBulbOff />
         </EmptyMedia>
-        <EmptyTitle>No Insights Yet</EmptyTitle>
+        <EmptyTitle>No Market Signals Yet</EmptyTitle>
         <EmptyDescription>
           {isProOrPremium
-            ? "We automatically scan the market to gather data and generate actionable insights from real user posts. Insights will appear here as we discover them."
-            : "There are no insights yet. Please wait until data is captured from real user posts."}
+            ? "We scan the market and surface recurring themes backed by 5+ posts. When we have enough, we generate a short summary per category. Market signals will appear here as we discover them."
+            : "There are no market signals yet. Each signal needs 5+ supporting posts to appear."}
         </EmptyDescription>
       </EmptyHeader>
       {isProOrPremium && (

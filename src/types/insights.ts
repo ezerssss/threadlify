@@ -1,13 +1,13 @@
 import * as z from "zod";
 
-export const ActionableObjectivesSchema = z.object({
-  id: z.string().min(1),
-  title: z.string().min(1),
-  whatTheMarketTellsUs: z.string().min(1),
-  whyItMatters: z.string().min(1),
-  category: z.string().min(1),
-  specificTasks: z.string().min(1).array().min(1),
-  numPosts: z.number().positive(),
+/** Per-lens insight summary: one paragraph per lens (only when 5+ signals exist). */
+export const InsightSummarySchema = z.object({
+  market_icp: z.string(),
+  pain: z.string(),
+  feature: z.string(),
+  onboarding: z.string(),
+  monetization: z.string(),
+  trust: z.string(),
 });
 
-export type ActionableObjectivesType = z.infer<typeof ActionableObjectivesSchema>;
+export type InsightSummaryType = z.infer<typeof InsightSummarySchema>;

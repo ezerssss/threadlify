@@ -3,7 +3,8 @@ export enum FIREBASE_COLLECTION_ENUMS {
   SCRAPERS_COLLECTION = "scrapers",
   SUBSCRIBERS_COLLECTION = "subscribers",
   POSTS_COLLECTION = "posts",
-  OBJECTIVES_COLLECTION = "objectives",
+  SIGNALS_COLLECTION = "signals",
+  INSIGHTS_COLLECTION = "insights",
   LOGS_COLLECTION = "logs",
   INVITES_COLLECTION = "invites",
 }

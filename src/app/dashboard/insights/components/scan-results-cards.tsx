@@ -1,43 +1,46 @@
 "use client";
 
-import { collection, doc, onSnapshot } from "firebase/firestore";
+import { collection, doc, getDocs, onSnapshot } from "firebase/firestore";
 import * as LucideIcons from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectItem, SelectContent, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UpgradeOverlay } from "@/components/upgrade-overlay";
 import { USERS_COLLECTION_REF } from "@/constants/firebase";
 import { FIREBASE_COLLECTION_ENUMS } from "@/enums/firebase";
 import useUser from "@/hooks/use-user";
-import { ActionableObjectivesType } from "@/types/insights";
+import type { InsightSummaryType } from "@/types/insights";
+import { MIN_SIGNAL_COUNT, SIGNAL_LENSES, type SignalType } from "@/types/signal";
 
 import { EmptyObjectives } from "./empty-objectives";
 import { InsightCard } from "./insight-card";
-import { INSIGHT_CATEGORIES } from "./insight-categories";
-import InsightModal from "./insight-modal";
 import { InsightsSkeleton } from "./insights-skeleton";
+import { LENS_DISPLAY, type SignalLensKey } from "./lens-display";
+import SignalModal from "./signal-modal";
+
+const INITIAL_SIGNALS_PER_LENS = 3;
+
+type CategoryFilterValue = SignalLensKey | "all";
 
 export function ScanResultsCards() {
   const { user, userData, claims } = useUser();
-  const [insights, setInsights] = useState<ActionableObjectivesType[]>([]);
-  const [page, setPage] = useState(1);
-  const [sort, setSort] = useState<"posts" | "az" | "za">("posts");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [open, setOpen] = useState(false);
-  const [currentObjective, setCurrentObjective] = useState<ActionableObjectivesType | null>(null);
+  const [signals, setSignals] = useState<SignalType[]>([]);
+  const [insightSummary, setInsightSummary] = useState<InsightSummaryType | null>(null);
+  const [expandedLens, setExpandedLens] = useState<SignalLensKey | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedSignal, setSelectedSignal] = useState<SignalType | null>(null);
+  const [selectedLens, setSelectedLens] = useState<SignalLensKey | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilterValue>("all");
+  const hasSetInitialCategory = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const PAGE_SIZE = 9;
-
-  // Lock content if subscription is free or expired (admins bypass via custom claim)
   const isSubscriptionLocked = userData?.subscription.plan === "free" && !claims?.isAdmin;
 
-  // Load from Firestore (only if subscription is not locked)
+  // Subscribe to signals
   useEffect(() => {
-    if (!user || !userData) {
-      return;
-    }
+    if (!user || !userData) return;
 
     if (isSubscriptionLocked) {
       setIsLoading(false);
@@ -45,63 +48,94 @@ export function ScanResultsCards() {
     }
 
     const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
-    const insightsCollection = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.OBJECTIVES_COLLECTION);
+    const signalsRef = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.SIGNALS_COLLECTION);
 
-    const unsub = onSnapshot(insightsCollection, (snapshot) => {
-      const data: ActionableObjectivesType[] = snapshot.docs.map((doc) => doc.data() as ActionableObjectivesType);
-      setInsights(data);
+    const unsub = onSnapshot(signalsRef, (snapshot) => {
+      const data: SignalType[] = snapshot.docs.map((d) => d.data() as SignalType);
+      setSignals(data);
       setIsLoading(false);
     });
 
     return () => unsub();
   }, [user, userData, isSubscriptionLocked]);
 
-  // Get available categories (categories that have insights)
-  const availableCategories = useMemo(() => {
-    const categorySet = new Set(insights.map((insight) => insight.category));
-    return Array.from(categorySet).filter((cat) => INSIGHT_CATEGORIES[cat]);
-  }, [insights]);
-
-  // Filtering and sorting logic
-  const filteredAndSortedInsights = useMemo(() => {
-    // First filter by category
-    const filtered =
-      categoryFilter === "all" ? insights : insights.filter((insight) => insight.category === categoryFilter);
-
-    // Then sort
-    return [...filtered].sort((a, b) => {
-      if (sort === "posts") return b.numPosts - a.numPosts;
-      if (sort === "az") return a.title.localeCompare(b.title);
-      if (sort === "za") return b.title.localeCompare(a.title);
-      return 0;
-    });
-  }, [insights, sort, categoryFilter]);
-
-  // Reset category filter if selected category no longer has insights
+  // Load insight summary (single doc)
   useEffect(() => {
-    if (categoryFilter !== "all" && !availableCategories.includes(categoryFilter)) {
-      setCategoryFilter("all");
+    if (!user || !userData || isSubscriptionLocked) return;
+
+    (async () => {
+      const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
+      const insightsRef = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.INSIGHTS_COLLECTION);
+      const snapshot = await getDocs(insightsRef);
+      setIsLoading(false);
+
+      if (snapshot.empty) {
+        setInsightSummary(null);
+        return;
+      }
+      const first = snapshot.docs[0];
+      setInsightSummary(first.data() as InsightSummaryType);
+    })();
+  }, [user, userData, isSubscriptionLocked]);
+
+  const validSignals = useMemo(() => signals.filter((s) => s.count >= MIN_SIGNAL_COUNT), [signals]);
+
+  const signalsByLens = useMemo(() => {
+    const byLens: Record<SignalLensKey, SignalType[]> = {
+      market_icp: [],
+      pain: [],
+      feature: [],
+      onboarding: [],
+      monetization: [],
+      trust: [],
+    };
+    for (const s of validSignals) {
+      byLens[s.lens].push(s);
     }
-  }, [categoryFilter, availableCategories]);
+    for (const lens of SIGNAL_LENSES) {
+      byLens[lens].sort((a, b) => b.count - a.count);
+    }
+    return byLens;
+  }, [validSignals]);
 
-  // Pagination logic
-  const paginated = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return filteredAndSortedInsights.slice(start, start + PAGE_SIZE);
-  }, [page, filteredAndSortedInsights]);
+  const lensOrder = SIGNAL_LENSES as SignalLensKey[];
+  const hasAnySignals = validSignals.length > 0;
 
-  const totalPages = Math.ceil(filteredAndSortedInsights.length / PAGE_SIZE);
+  const lensesWithSignals = useMemo(
+    () => lensOrder.filter((lens) => (signalsByLens[lens]?.length ?? 0) > 0),
+    [lensOrder, signalsByLens],
+  );
+
+  const sortedLensesWithSignals = useMemo(
+    () =>
+      [...lensesWithSignals].sort((a, b) => (LENS_DISPLAY[a]?.label ?? a).localeCompare(LENS_DISPLAY[b]?.label ?? b)),
+    [lensesWithSignals],
+  );
+
+  useEffect(() => {
+    if (hasSetInitialCategory.current || sortedLensesWithSignals.length === 0) return;
+    setCategoryFilter(sortedLensesWithSignals[0]);
+    hasSetInitialCategory.current = true;
+  }, [sortedLensesWithSignals]);
+
+  let lensesToShow: SignalLensKey[];
+  if (categoryFilter === "all") {
+    lensesToShow = sortedLensesWithSignals;
+  } else if (lensesWithSignals.includes(categoryFilter)) {
+    lensesToShow = [categoryFilter];
+  } else {
+    lensesToShow = sortedLensesWithSignals;
+  }
 
   if (isLoading) {
     return <InsightsSkeleton />;
   }
 
-  // Show skeleton if subscription is locked (even if there's data, to hide old data from expired users)
   if (isSubscriptionLocked) {
     return (
       <UpgradeOverlay
-        title="Upgrade to Access Insights"
-        description="Unlock actionable insights and recommendations generated from real user data. Upgrade your subscription to access this feature and more."
+        title="Upgrade to Access Market Signals"
+        description="Unlock recurring themes from real conversations. Upgrade your subscription to access this feature."
       >
         <InsightsSkeleton />
       </UpgradeOverlay>
@@ -110,121 +144,113 @@ export function ScanResultsCards() {
 
   return (
     <>
-      {filteredAndSortedInsights.length > 0 && (
+      {hasAnySignals && (
         <section className="space-y-1">
-          <h1 className="text-primary text-xl font-bold">Actionable Insights</h1>
-          <p className="text-sm text-gray-500">
-            A curated set of recommendations generated from real user insights, helping you understand what to improve
-            and where to focus next.
+          <h1 className="text-primary text-xl font-bold">Market Signals</h1>
+          <p className="text-muted-foreground text-sm">
+            Recurring themes from real conversations. Pick a category to focus on what matters.
           </p>
         </section>
       )}
 
-      <div className="flex flex-col gap-4">
-        {/* Top Controls */}
-        {insights.length > 0 && (
-          <div className="flex items-center justify-between gap-4">
-            <Select
-              value={categoryFilter}
-              onValueChange={(v) => {
-                setCategoryFilter(v);
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="w-[200px] border-0 shadow-none">
-                <SelectValue placeholder="Filter by category" />
+      <div className="flex flex-col gap-6">
+        {hasAnySignals && lensesWithSignals.length > 0 && (
+          <div className="flex items-center gap-4">
+            <span className="text-muted-foreground text-sm">Category</span>
+            <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as CategoryFilterValue)}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Choose category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {availableCategories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {INSIGHT_CATEGORIES[category].label}
+                <SelectItem value="all">All categories</SelectItem>
+                {sortedLensesWithSignals.map((lens) => (
+                  <SelectItem key={lens} value={lens}>
+                    {LENS_DISPLAY[lens]?.label ?? lens}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+        )}
 
-            <Select
-              value={sort}
-              onValueChange={(v) => {
-                setSort(v as "posts" | "az" | "za");
-                setPage(1);
-              }}
-            >
-              <div className="flex w-full justify-end">
-                <SelectTrigger className="border-0 shadow-none">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
+        {!hasAnySignals && <EmptyObjectives />}
+
+        {lensesToShow.map((lens) => {
+          const lensSignals = signalsByLens[lens];
+          if (lensSignals.length === 0) return null;
+
+          const display = LENS_DISPLAY[lens];
+          const summary = (insightSummary?.[lens as keyof InsightSummaryType] ?? "")?.trim() ?? "";
+          const isExpanded = expandedLens === lens;
+          const visibleSignals = isExpanded ? lensSignals : lensSignals.slice(0, INITIAL_SIGNALS_PER_LENS);
+          const hasMore = lensSignals.length > INITIAL_SIGNALS_PER_LENS;
+          const iconName = (display?.icon ?? "Lightbulb") as keyof typeof LucideIcons;
+          const LensIcon = display?.Icon;
+
+          return (
+            <div key={lens} className="space-y-3">
+              <div className="flex items-center gap-2">
+                {LensIcon && <LensIcon className="h-4 w-4" style={{ color: display?.color }} />}
+                <h2 className="text-lg font-semibold" style={{ color: display?.color }}>
+                  {display?.label ?? lens}
+                </h2>
               </div>
 
-              <SelectContent>
-                <SelectItem value="posts">Most Referenced</SelectItem>
-                <SelectItem value="az">A → Z</SelectItem>
-                <SelectItem value="za">Z → A</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+              {summary && (
+                <div
+                  className="bg-muted/40 rounded-lg border-l-4 p-4"
+                  style={{ borderLeftColor: display?.color ?? "var(--muted)" }}
+                >
+                  <div className="mb-2 flex items-center gap-2" style={{ color: display?.color }}>
+                    {LensIcon && <LensIcon className="h-4 w-4" />}
+                    <span className="text-sm font-semibold">Insight summary</span>
+                  </div>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{summary}</p>
+                </div>
+              )}
 
-        {filteredAndSortedInsights.length < 1 && insights.length > 0 && (
-          <div className="text-muted-foreground py-8 text-center">No insights found for the selected category.</div>
-        )}
+              <div className="flex flex-col gap-3">
+                <div className="scrollbar-thin flex flex-col gap-3 overflow-y-auto">
+                  {visibleSignals.map((signal) => (
+                    <InsightCard
+                      key={signal.id}
+                      signal={signal}
+                      lensLabel={display?.label ?? lens}
+                      lensColor={display?.color ?? "inherit"}
+                      iconName={iconName}
+                      onClick={() => {
+                        setSelectedSignal(signal);
+                        setSelectedLens(lens);
+                        setModalOpen(true);
+                      }}
+                    />
+                  ))}
+                </div>
 
-        {insights.length < 1 && <EmptyObjectives />}
-
-        {/* Cards Grid */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {paginated.map((item) => {
-            const category = INSIGHT_CATEGORIES[item.category];
-            const Icon = category ? category.icon : "Lightbulb";
-
-            return (
-              <InsightCard
-                key={item.id}
-                categoryLabel={category ? category.label : "Insight"}
-                categoryColor={category ? category.color : "orange"}
-                iconName={Icon as keyof typeof LucideIcons}
-                title={item.title}
-                posts={item.numPosts}
-                onClick={() => {
-                  setCurrentObjective(item);
-                  setOpen(true);
-                }}
-              />
-            );
-          })}
-        </div>
-
-        {/* Pagination */}
-        {filteredAndSortedInsights.length > 0 && (
-          <div className="mt-4 flex items-center justify-between">
-            <Button variant="outline" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
-              Previous
-            </Button>
-
-            <span className="text-sm">
-              Page {page} of {totalPages}
-            </span>
-
-            <Button variant="outline" disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}>
-              Next
-            </Button>
-          </div>
-        )}
+                {hasMore && (
+                  <Button
+                    variant="ghost"
+                    className="text-muted-foreground w-fit gap-1"
+                    onClick={() => setExpandedLens((prev) => (prev === lens ? null : lens))}
+                  >
+                    {isExpanded ? "Show less" : `Show ${lensSignals.length - INITIAL_SIGNALS_PER_LENS} more`}
+                    <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                  </Button>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {currentObjective && (
-        <InsightModal
-          open={open}
-          id={currentObjective.id}
-          onOpenChange={setOpen}
-          iconName={INSIGHT_CATEGORIES[currentObjective.category].icon as keyof typeof LucideIcons}
-          categoryColor={INSIGHT_CATEGORIES[currentObjective.category].color}
-          categoryLabel={INSIGHT_CATEGORIES[currentObjective.category].label}
-          title={currentObjective.title}
-          whatTheMarketTellsUs={currentObjective.whatTheMarketTellsUs}
-          whyItMatters={currentObjective.whyItMatters}
-          specificTasks={currentObjective.specificTasks}
+      {selectedSignal && selectedLens && (
+        <SignalModal
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          signal={selectedSignal}
+          iconName={(LENS_DISPLAY[selectedLens]?.icon ?? "Lightbulb") as keyof typeof LucideIcons}
+          lensColor={LENS_DISPLAY[selectedLens]?.color ?? "inherit"}
+          lensLabel={LENS_DISPLAY[selectedLens]?.label ?? selectedLens}
         />
       )}
     </>

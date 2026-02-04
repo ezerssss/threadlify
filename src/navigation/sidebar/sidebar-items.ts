@@ -52,7 +52,7 @@ export const sidebarItems: NavGroup[] = [
         icon: Kanban,
       },
       {
-        title: "Insights",
+        title: "Signals",
         url: "/dashboard/insights",
         icon: LightbulbIcon,
       },

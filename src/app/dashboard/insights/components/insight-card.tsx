@@ -1,19 +1,21 @@
-import { ForwardRefExoticComponent, RefAttributes } from "react";
+"use client";
 
 import * as LucideIcons from "lucide-react";
+import { ForwardRefExoticComponent, RefAttributes } from "react";
+import Markdown from "react-markdown";
 
 import { Card } from "@/components/ui/card";
+import type { SignalType } from "@/types/signal";
 
 interface InsightCardProps {
-  categoryLabel: string;
-  categoryColor: string;
-  iconName: keyof typeof LucideIcons;
-  title: string;
-  posts: number;
-  onClick?: () => void;
+  readonly signal: SignalType;
+  readonly lensLabel: string;
+  readonly lensColor: string;
+  readonly iconName: keyof typeof LucideIcons;
+  readonly onClick?: () => void;
 }
 
-export function InsightCard({ categoryLabel, categoryColor, iconName, title, posts, onClick }: InsightCardProps) {
+export function InsightCard({ signal, lensLabel, lensColor, iconName, onClick }: InsightCardProps) {
   const Icon =
     (LucideIcons[iconName] as ForwardRefExoticComponent<
       Omit<LucideIcons.LucideProps, "ref"> & RefAttributes<SVGSVGElement>
@@ -25,22 +27,21 @@ export function InsightCard({ categoryLabel, categoryColor, iconName, title, pos
       onClick={onClick}
     >
       <div className="text-muted-foreground flex items-center gap-1 text-xs">
-        <Icon style={{ color: categoryColor }} className="h-3 w-3" />
-        <p style={{ color: categoryColor }}>{categoryLabel}</p>
+        <Icon style={{ color: lensColor }} className="h-3 w-3" />
+        <p style={{ color: lensColor }}>{lensLabel}</p>
       </div>
 
       <div className="flex-1 space-y-2">
-        <h3 className="leading-tight font-semibold">{title}</h3>
-
-        {/* <div className="text-muted-foreground pointer-events-none text-xs">
-          <ReadMoreArea lettersLimit={300} expandLabel="See more">
-            {description}
-          </ReadMoreArea>
-        </div> */}
+        <h3 className="leading-tight font-semibold">{signal.title}</h3>
+        {signal.quotes.length > 0 && (
+          <div className="text-muted-foreground line-clamp-2 text-xs italic">
+            <Markdown>{`"${signal.quotes[0].text}${signal.quotes.length > 1 ? "…" : ""}"`}</Markdown>
+          </div>
+        )}
       </div>
 
       <p className="text-muted-foreground mt-1 text-xs">
-        Referenced by <span className="font-medium">{posts}</span> posts
+        Supported by <span className="font-medium">{signal.count}</span> posts
       </p>
     </Card>
   );
