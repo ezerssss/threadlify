@@ -54,7 +54,6 @@ export function ScanResultsCards() {
     const unsub = onSnapshot(signalsRef, (snapshot) => {
       const data: SignalType[] = snapshot.docs.map((d) => d.data() as SignalType);
       setSignals(data);
-      setIsLoading(false);
     });
 
     return () => unsub();
@@ -62,20 +61,23 @@ export function ScanResultsCards() {
 
   // Load insight summary (single doc)
   useEffect(() => {
-    if (!user || !userData || isSubscriptionLocked) return;
+    if (!user || !userData || isSubscriptionLocked) {
+      return;
+    }
 
     (async () => {
       const userDocRef = doc(USERS_COLLECTION_REF, user.uid);
       const insightsRef = collection(userDocRef, FIREBASE_COLLECTION_ENUMS.INSIGHTS_COLLECTION);
       const snapshot = await getDocs(insightsRef);
-      setIsLoading(false);
 
       if (snapshot.empty) {
         setInsightSummary(null);
+        setIsLoading(false);
         return;
       }
       const first = snapshot.docs[0];
       setInsightSummary(first.data() as InsightSummaryType);
+      setIsLoading(false);
     })();
   }, [user, userData, isSubscriptionLocked]);
 
@@ -116,12 +118,11 @@ export function ScanResultsCards() {
 
   const lensesWithSummaryOrSignals = useMemo(() => {
     return lensOrder.filter((lens) => {
-      const hasSignals = (signalsByLens[lens]?.length ?? 0) > 0;
       const summary = insightSummary?.[lens as keyof InsightSummaryType];
       const hasSummary = summary && typeof summary === "object" && "headline" in summary && summary.headline?.trim();
-      return hasSignals || hasSummary;
+      return hasSummary;
     });
-  }, [lensOrder, signalsByLens, insightSummary]);
+  }, [lensOrder, insightSummary]);
 
   const lensesToShow = useMemo(() => {
     const list = [...lensesWithSummaryOrSignals];
@@ -147,7 +148,6 @@ export function ScanResultsCards() {
   useEffect(() => {
     setPage((p) => Math.min(p, totalPages));
   }, [totalPages]);
-
   if (isLoading) {
     return <InsightsSkeleton />;
   }
@@ -229,7 +229,7 @@ export function ScanResultsCards() {
                         )}
                       </div>
 
-                      {summary ? (
+                      {summary && (
                         <div className="space-y-2">
                           <div>
                             <h3 className="text-foreground text-sm leading-relaxed font-semibold">
@@ -287,8 +287,6 @@ export function ScanResultsCards() {
                             </div>
                           )}
                         </div>
-                      ) : (
-                        <p className="text-muted-foreground text-sm">No summary yet.</p>
                       )}
 
                       <button
