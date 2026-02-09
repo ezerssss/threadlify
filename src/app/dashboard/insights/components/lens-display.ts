@@ -1,4 +1,4 @@
-import { Users, AlertCircle, Puzzle, Rocket, CreditCard, ShieldCheck, LucideIcon } from "lucide-react";
+import { Users, Puzzle, Rocket, CreditCard, ShieldCheck, LucideIcon } from "lucide-react";
 import type { z } from "zod";
 
 import { SignalLensSchema } from "@/types/signal";
@@ -7,16 +7,10 @@ export type SignalLensKey = z.infer<typeof SignalLensSchema>;
 
 export const LENS_DISPLAY: Record<SignalLensKey, { label: string; icon: string; Icon: LucideIcon; color: string }> = {
   market_icp: {
-    label: "Market & ICP",
+    label: "Market & Ideal Customer Profile",
     icon: "Users",
     Icon: Users,
     color: "oklch(0.67 0.14 245)",
-  },
-  pain: {
-    label: "Pain",
-    icon: "AlertCircle",
-    Icon: AlertCircle,
-    color: "oklch(0.55 0.22 25)",
   },
   feature: {
     label: "Feature",

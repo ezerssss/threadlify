@@ -1,7 +1,7 @@
 import * as z from "zod";
 
 /** Lenses for signals: one signal per lens per post. */
-export const SIGNAL_LENSES = ["market_icp", "pain", "feature", "onboarding", "monetization", "trust"];
+export const SIGNAL_LENSES = ["market_icp", "feature", "onboarding", "monetization", "trust"];
 
 export const SignalLensSchema = z.enum(SIGNAL_LENSES);
 

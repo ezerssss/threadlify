@@ -2,8 +2,8 @@
 
 import { collection, doc, getDocs, onSnapshot } from "firebase/firestore";
 import * as LucideIcons from "lucide-react";
-import { ChevronDown } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,20 +20,22 @@ import { InsightsSkeleton } from "./insights-skeleton";
 import { LENS_DISPLAY, type SignalLensKey } from "./lens-display";
 import SignalModal from "./signal-modal";
 
-const INITIAL_SIGNALS_PER_LENS = 3;
-
-type CategoryFilterValue = SignalLensKey | "all";
+type SortByValue = "reference_count" | "name";
 
 export function ScanResultsCards() {
   const { user, userData, claims } = useUser();
   const [signals, setSignals] = useState<SignalType[]>([]);
   const [insightSummary, setInsightSummary] = useState<InsightSummaryType | null>(null);
   const [expandedLens, setExpandedLens] = useState<SignalLensKey | null>(null);
+  const [expandedSummary, setExpandedSummary] = useState<SignalLensKey | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedSignal, setSelectedSignal] = useState<SignalType | null>(null);
   const [selectedLens, setSelectedLens] = useState<SignalLensKey | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilterValue>("all");
+  const [sortBy, setSortBy] = useState<SortByValue>("reference_count");
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+
+  const TILES_PER_PAGE = 2;
 
   const isSubscriptionLocked = userData?.subscription.plan === "free" && !claims?.isAdmin;
 
@@ -82,14 +84,13 @@ export function ScanResultsCards() {
   const signalsByLens = useMemo(() => {
     const byLens: Record<SignalLensKey, SignalType[]> = {
       market_icp: [],
-      pain: [],
       feature: [],
       onboarding: [],
       monetization: [],
       trust: [],
     };
     for (const s of validSignals) {
-      byLens[s.lens].push(s);
+      if (s.lens in byLens) byLens[s.lens].push(s);
     }
     for (const lens of SIGNAL_LENSES) {
       byLens[lens].sort((a, b) => b.count - a.count);
@@ -97,28 +98,55 @@ export function ScanResultsCards() {
     return byLens;
   }, [validSignals]);
 
-  const lensOrder = SIGNAL_LENSES as SignalLensKey[];
-  const hasAnySignals = validSignals.length > 0;
+  const lensOrder: SignalLensKey[] = [...SIGNAL_LENSES];
 
-  const lensesWithSignals = useMemo(
-    () => lensOrder.filter((lens) => (signalsByLens[lens]?.length ?? 0) > 0),
-    [lensOrder, signalsByLens],
+  const totalReferencePostsByLens = useMemo(() => {
+    const out: Record<SignalLensKey, number> = {
+      market_icp: 0,
+      feature: 0,
+      onboarding: 0,
+      monetization: 0,
+      trust: 0,
+    };
+    for (const lens of lensOrder) {
+      out[lens] = (signalsByLens[lens] ?? []).reduce((sum, s) => sum + s.count, 0);
+    }
+    return out;
+  }, [signalsByLens, lensOrder]);
+
+  const lensesWithSummaryOrSignals = useMemo(() => {
+    return lensOrder.filter((lens) => {
+      const hasSignals = (signalsByLens[lens]?.length ?? 0) > 0;
+      const summary = insightSummary?.[lens as keyof InsightSummaryType];
+      const hasSummary = summary && typeof summary === "object" && "headline" in summary && summary.headline?.trim();
+      return hasSignals || hasSummary;
+    });
+  }, [lensOrder, signalsByLens, insightSummary]);
+
+  const lensesToShow = useMemo(() => {
+    const list = [...lensesWithSummaryOrSignals];
+    if (sortBy === "reference_count") {
+      list.sort((a, b) => totalReferencePostsByLens[b] - totalReferencePostsByLens[a]);
+    } else {
+      list.sort((a, b) => (LENS_DISPLAY[a]?.label ?? a).localeCompare(LENS_DISPLAY[b]?.label ?? b));
+    }
+    return list;
+  }, [lensesWithSummaryOrSignals, sortBy, totalReferencePostsByLens]);
+
+  const totalPages = Math.max(1, Math.ceil(lensesToShow.length / TILES_PER_PAGE));
+  const pageStart = (page - 1) * TILES_PER_PAGE;
+  const lensesOnPage = useMemo(
+    () => lensesToShow.slice(pageStart, pageStart + TILES_PER_PAGE),
+    [lensesToShow, pageStart],
   );
 
-  const sortedLensesWithSignals = useMemo(
-    () =>
-      [...lensesWithSignals].sort((a, b) => (LENS_DISPLAY[a]?.label ?? a).localeCompare(LENS_DISPLAY[b]?.label ?? b)),
-    [lensesWithSignals],
-  );
+  useEffect(() => {
+    setPage(1);
+  }, [sortBy]);
 
-  let lensesToShow: SignalLensKey[];
-  if (categoryFilter === "all") {
-    lensesToShow = sortedLensesWithSignals;
-  } else if (lensesWithSignals.includes(categoryFilter)) {
-    lensesToShow = [categoryFilter];
-  } else {
-    lensesToShow = sortedLensesWithSignals;
-  }
+  useEffect(() => {
+    setPage((p) => Math.min(p, totalPages));
+  }, [totalPages]);
 
   if (isLoading) {
     return <InsightsSkeleton />;
@@ -135,105 +163,197 @@ export function ScanResultsCards() {
     );
   }
 
+  const hasTiles = lensesToShow.length > 0;
+
   return (
     <>
-      {hasAnySignals && (
+      {hasTiles && (
         <section className="space-y-1">
           <h1 className="text-primary text-xl font-bold">Market Signals</h1>
           <p className="text-muted-foreground text-sm">
-            Recurring themes from real conversations. Pick a category to focus on what matters.
+            Recurring themes from real conversations. Click a tile to view signals.
           </p>
         </section>
       )}
 
       <div className="flex flex-col gap-6">
-        {hasAnySignals && lensesWithSignals.length > 0 && (
+        {hasTiles && (
           <div className="flex items-center gap-4">
-            <span className="text-muted-foreground text-sm">Category</span>
-            <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as CategoryFilterValue)}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Choose category" />
+            <span className="text-muted-foreground text-sm">Sort by</span>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortByValue)}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
-                {sortedLensesWithSignals.map((lens) => (
-                  <SelectItem key={lens} value={lens}>
-                    {LENS_DISPLAY[lens]?.label ?? lens}
-                  </SelectItem>
-                ))}
+                <SelectItem value="reference_count">Reference count (posts)</SelectItem>
+                <SelectItem value="name">Name (A–Z)</SelectItem>
               </SelectContent>
             </Select>
           </div>
         )}
 
-        {!hasAnySignals && <EmptyObjectives />}
+        {!hasTiles && <EmptyObjectives />}
 
-        {lensesToShow.map((lens) => {
-          const lensSignals = signalsByLens[lens];
-          if (lensSignals.length === 0) return null;
+        {hasTiles && (
+          <>
+            <div className="grid grid-cols-1 gap-4">
+              {lensesOnPage.map((lens) => {
+                const lensSignals = signalsByLens[lens] ?? [];
+                const display = LENS_DISPLAY[lens];
+                const summaryData = insightSummary?.[lens as keyof InsightSummaryType];
+                const summary =
+                  summaryData && typeof summaryData === "object" && "headline" in summaryData ? summaryData : null;
+                const isExpanded = expandedLens === lens;
+                const isSummaryExpanded = expandedSummary === lens;
+                const totalRefs = totalReferencePostsByLens[lens];
+                const LensIcon = display?.Icon;
+                const signalCount = lensSignals.length;
+                const signalWord = signalCount === 1 ? "signal" : "signals";
+                const iconName = (display?.icon ?? "Lightbulb") as keyof typeof LucideIcons;
 
-          const display = LENS_DISPLAY[lens];
-          const summary = (insightSummary?.[lens as keyof InsightSummaryType] ?? "")?.trim() ?? "";
-          const isExpanded = expandedLens === lens;
-          const visibleSignals = isExpanded ? lensSignals : lensSignals.slice(0, INITIAL_SIGNALS_PER_LENS);
-          const hasMore = lensSignals.length > INITIAL_SIGNALS_PER_LENS;
-          const iconName = (display?.icon ?? "Lightbulb") as keyof typeof LucideIcons;
-          const LensIcon = display?.Icon;
+                return (
+                  <div key={lens} className="space-y-3">
+                    <div
+                      className="bg-muted/30 hover:bg-muted/40 flex w-full flex-col rounded-lg border-l-4 p-3 text-left transition-colors"
+                      style={{ borderLeftColor: display?.color ?? "var(--muted)" }}
+                    >
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <div className="flex min-w-0 items-center gap-2" style={{ color: display?.color }}>
+                          {LensIcon && <LensIcon className="h-4 w-4 shrink-0" />}
+                          <span className="truncate text-sm font-semibold">{display?.label ?? lens}</span>
+                        </div>
+                        {totalRefs > 0 && (
+                          <span className="text-muted-foreground/80 shrink-0 text-xs tabular-nums">
+                            Seen in {totalRefs} conversatio{totalRefs === 1 ? "" : "s"}
+                          </span>
+                        )}
+                      </div>
 
-          return (
-            <div key={lens} className="space-y-3">
-              <div className="flex items-center gap-2">
-                {LensIcon && <LensIcon className="h-4 w-4" style={{ color: display?.color }} />}
-                <h2 className="text-lg font-semibold" style={{ color: display?.color }}>
-                  {display?.label ?? lens}
-                </h2>
-              </div>
+                      {summary ? (
+                        <div className="space-y-2">
+                          <div>
+                            <h3 className="text-foreground text-sm leading-relaxed font-semibold">
+                              {summary.headline}
+                            </h3>
+                            {summary.subline && (
+                              <p className="text-foreground/80 mt-1 text-sm leading-relaxed">{summary.subline}</p>
+                            )}
+                          </div>
 
-              {summary && (
-                <div
-                  className="bg-muted/40 rounded-lg border-l-4 p-4"
-                  style={{ borderLeftColor: display?.color ?? "var(--muted)" }}
-                >
-                  <div className="mb-2 flex items-center gap-2" style={{ color: display?.color }}>
-                    {LensIcon && <LensIcon className="h-4 w-4" />}
-                    <span className="text-sm font-semibold">Insight summary</span>
+                          {summary.bullets && summary.bullets.length > 0 && (
+                            <div className="space-y-1">
+                              {isSummaryExpanded ? (
+                                <>
+                                  <ul className="text-foreground/90 ml-4 list-disc space-y-1 text-sm">
+                                    {summary.bullets.map((bullet) => (
+                                      <li key={`${lens}-${bullet.slice(0, 20)}`} className="leading-relaxed">
+                                        {bullet}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedSummary(null);
+                                    }}
+                                    className="text-muted-foreground hover:text-foreground mt-1 w-fit text-xs font-medium underline-offset-2 hover:underline"
+                                  >
+                                    Read less
+                                  </button>
+                                </>
+                              ) : (
+                                <div className="space-y-1">
+                                  <ul className="text-foreground/90 ml-4 list-disc text-sm">
+                                    <li className="leading-relaxed">{summary.bullets[0]}</li>
+                                    {summary.bullets.length > 1 && (
+                                      <li className="text-muted-foreground leading-relaxed">...</li>
+                                    )}
+                                  </ul>
+                                  {summary.bullets.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setExpandedSummary(lens);
+                                      }}
+                                      className="text-muted-foreground hover:text-foreground w-fit text-xs font-medium underline-offset-2 hover:underline"
+                                    >
+                                      Read more
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-sm">No summary yet.</p>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => setExpandedLens((prev) => (prev === lens ? null : lens))}
+                        className="text-muted-foreground hover:text-foreground mt-3 w-fit text-xs font-medium underline-offset-2 hover:underline"
+                      >
+                        {isExpanded ? "Hide signals" : `View ${signalCount} ${signalWord}`}
+                      </button>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="bg-muted/20 space-y-3 rounded-lg border p-4">
+                        {(signalsByLens[lens] ?? []).length > 0 ? (
+                          <div className="scrollbar-thin flex flex-col gap-3 overflow-y-auto">
+                            {(signalsByLens[lens] ?? []).map((signal) => (
+                              <InsightCard
+                                key={signal.id}
+                                signal={signal}
+                                lensLabel={display?.label ?? lens}
+                                lensColor={display?.color ?? "inherit"}
+                                iconName={iconName}
+                                onClick={() => {
+                                  setSelectedSignal(signal);
+                                  setSelectedLens(lens);
+                                  setModalOpen(true);
+                                }}
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground text-sm">No signals in this category yet.</p>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{summary}</p>
-                </div>
-              )}
-
-              <div className="flex flex-col gap-3">
-                <div className="scrollbar-thin flex flex-col gap-3 overflow-y-auto">
-                  {visibleSignals.map((signal) => (
-                    <InsightCard
-                      key={signal.id}
-                      signal={signal}
-                      lensLabel={display?.label ?? lens}
-                      lensColor={display?.color ?? "inherit"}
-                      iconName={iconName}
-                      onClick={() => {
-                        setSelectedSignal(signal);
-                        setSelectedLens(lens);
-                        setModalOpen(true);
-                      }}
-                    />
-                  ))}
-                </div>
-
-                {hasMore && (
-                  <Button
-                    variant="ghost"
-                    className="text-muted-foreground w-fit gap-1"
-                    onClick={() => setExpandedLens((prev) => (prev === lens ? null : lens))}
-                  >
-                    {isExpanded ? "Show less" : `Show ${lensSignals.length - INITIAL_SIGNALS_PER_LENS} more`}
-                    <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                  </Button>
-                )}
-              </div>
+                );
+              })}
             </div>
-          );
-        })}
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-muted-foreground text-sm">
+                  Page {page} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {selectedSignal && selectedLens && (
