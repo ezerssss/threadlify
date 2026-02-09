@@ -32,7 +32,9 @@ export function InsightCard({ signal, lensLabel, lensColor, iconName, onClick }:
       </div>
 
       <div className="flex-1 space-y-2">
-        <h3 className="leading-tight font-semibold">{signal.title}</h3>
+        <div className="leading-tight font-semibold">
+          <Markdown>{signal.title}</Markdown>
+        </div>
         {signal.quotes.length > 0 && (
           <div className="text-muted-foreground line-clamp-2 text-xs italic">
             <Markdown>{`"${signal.quotes[0].text}${signal.quotes.length > 1 ? "…" : ""}"`}</Markdown>
