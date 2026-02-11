@@ -51,7 +51,7 @@ export default function useUser() {
         return;
       }
 
-      const fetchedIdToken = await user.getIdToken();
+      const fetchedIdToken = await user.getIdToken(true);
       setIdToken(fetchedIdToken);
     }
 

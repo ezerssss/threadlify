@@ -23,6 +23,7 @@ import { toastError } from "@/lib/utils";
 import { useKanbanStore } from "@/stores/kanban";
 import { EditUserProfileType } from "@/types/user";
 
+import { AiProfileEditSheet } from "./ai-profile-edit-sheet";
 import ManageSubredditsDialog from "./manage-subreddits-dialog";
 import { AccountOverViewSkeleton } from "./skeleton/account-overview-skeleton";
 
@@ -171,9 +172,20 @@ export function AccountOverview() {
   return (
     <Card className="overflow-hidden shadow-xs">
       <CardHeader className="flex flex-col items-start gap-3">
-        <div className="flex w-full items-end justify-between">
+        <div className="flex w-full flex-wrap items-end justify-between gap-2">
           <CardTitle>My Profile</CardTitle>
-          <ManageSubredditsDialog />
+          <div className="flex items-center gap-2">
+            <AiProfileEditSheet
+              currentProfile={formData}
+              idToken={idToken ?? null}
+              onSuccess={(updated) => {
+                setFormData(updated);
+                originalDataRef.current = updated;
+              }}
+              plan={plan}
+            />
+            <ManageSubredditsDialog />
+          </div>
         </div>
         <CardDescription>
           Your auto-generated profile, growth strategy, and other relevant information in one view.

@@ -70,3 +70,16 @@ export const EditUserProfileSchema = z.object({
 });
 
 export type EditUserProfileType = z.infer<typeof EditUserProfileSchema>;
+
+/** Keys of profile that can be edited and shown in the AI edit review UI */
+export const EDITABLE_PROFILE_FIELDS = [
+  "description",
+  "audience",
+  "growthStrategy",
+  "replyTone",
+  "keywords",
+  "maxScrapeRecencyInMonths",
+  "notes",
+] as const satisfies readonly (keyof EditUserProfileType)[];
+
+export type EditableProfileFieldKey = (typeof EDITABLE_PROFILE_FIELDS)[number];
