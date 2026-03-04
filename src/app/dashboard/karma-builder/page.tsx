@@ -643,7 +643,11 @@ export default function KarmaBuilderPage() {
                         </Badge>
                         {userData?.selectedPersonaPreset && (
                           <span className="text-muted-foreground text-[11px]">
-                            Based on preset: <span className="font-medium">{userData.selectedPersonaPreset}</span>
+                            Based on preset:{" "}
+                            <span className="font-medium">
+                              {PRESET_CONFIG[userData.selectedPersonaPreset as PersonaPreset]?.label ??
+                                userData.selectedPersonaPreset}
+                            </span>
                           </span>
                         )}
                         {personaSubreddits.length > 0 && (
