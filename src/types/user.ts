@@ -4,6 +4,21 @@ import { SubscriptionSchema } from "./subscription";
 
 export const OnboardingStatusEnum = z.enum(["notAnswered", "processing", "completed"]);
 
+export const PersonaSchema = z.object({
+  ageRange: z.string().min(1),
+  experienceLevel: z.string().min(1),
+  tonePersonality: z.string().array().min(1),
+  writingStyle: z.string().array().min(1),
+  engagementStyle: z.string().array().min(1),
+  opinionStrength: z.string().min(1),
+  humorLevel: z.string().min(1),
+  likes: z.string().array().min(1),
+  dislikes: z.string().array().min(1),
+  hobbies: z.string().array().min(1),
+  backstory: z.string().min(1),
+});
+export type PersonaType = z.infer<typeof PersonaSchema>;
+
 export const UserDataSchema = z.object({
   id: z.string().min(1),
   email: z.email(),
@@ -19,6 +34,8 @@ export const UserDataSchema = z.object({
     extendedContext: z.string().min(1),
     notes: z.string(),
   }),
+  persona: PersonaSchema.nullable(),
+  selectedPersonaPreset: z.string().nullable(),
   strategy: z.string().min(1),
   irrelevanceContext: z.string(),
   replyTone: z.string().min(1),

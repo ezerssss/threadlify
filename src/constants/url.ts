@@ -21,6 +21,12 @@ export const PROPOSE_PROFILE_EDIT_URL = `${BACKEND_BASE_URL}/user/edit/ai-propos
 export const TWEAK_REPLY_URL = `${BACKEND_BASE_URL}/reply/tweak`;
 export const TWEAK_DM_URL = `${BACKEND_BASE_URL}/reply/dm/tweak`;
 
+// Persona / Karma Builder
+export const USER_PERSONA_PRESET_URL = `${BACKEND_BASE_URL}/user/persona/preset`;
+export const USER_PERSONA_CUSTOM_URL = `${BACKEND_BASE_URL}/user/persona/custom`;
+export const USER_PERSONA_EDIT_URL = `${BACKEND_BASE_URL}/user/persona/edit`;
+export const USER_PERSONA_SUBREDDITS_URL = `${BACKEND_BASE_URL}/user/persona/subreddits`;
+
 export const ACCEPT_INVITE_URL = `${BACKEND_BASE_URL}/invite/accept`;
 
 export const UPDATE_SUBREDDITS_URL = `${BACKEND_BASE_URL}/user/subreddits`;
