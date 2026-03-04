@@ -26,6 +26,7 @@ export const PostSchema = z.object({
   isSeen: z.boolean().default(false),
   userId: z.string().min(1),
   author: z.string().min(1),
+  authorId: z.string().nullable(),
   title: z.string().min(1),
   body: z.string().min(1),
   topComments: z.array(CommentSchema),

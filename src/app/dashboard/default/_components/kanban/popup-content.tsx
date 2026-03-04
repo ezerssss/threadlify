@@ -252,6 +252,7 @@ function PopUpContent(props: PropsInterface) {
             userName={userData.name}
             postUrl={post.url}
             updateSinglePost={updateSinglePost}
+            authorId={post.authorId}
           />
         </div>
       </DialogContent>

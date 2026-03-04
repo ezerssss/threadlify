@@ -15,6 +15,14 @@ interface PropsInterface {
   tweakButtonText?: string;
   /** Clarifies that tweak only affects this reply/DM, not future ones. */
   tweakButtonTooltip?: string;
+  /** Optionally disable the primary copy button (e.g. when DM target is unavailable). */
+  copyDisabled?: boolean;
+  /** Tooltip shown when the primary copy button is disabled. */
+  copyDisabledTooltip?: string;
+  /** Optionally disable the tweak button (e.g. when DM target is unavailable). */
+  tweakDisabled?: boolean;
+  /** Tooltip shown when the tweak button is disabled. */
+  tweakDisabledTooltip?: string;
 }
 
 const DEFAULT_TWEAK_TOOLTIP = "Rewrite this reply only. Doesn't change your default tone.";
@@ -26,6 +34,10 @@ function ReplyActions({
   copyButtonText = "Copy and open thread",
   tweakButtonText = "Tweak Reply",
   tweakButtonTooltip = DEFAULT_TWEAK_TOOLTIP,
+  copyDisabled,
+  copyDisabledTooltip,
+  tweakDisabled,
+  tweakDisabledTooltip,
 }: PropsInterface) {
   const [showTweakBox, setShowTweakBox] = useState(false);
   const [tweakText, setTweakText] = useState("");
@@ -58,9 +70,20 @@ function ReplyActions({
   return (
     <div className="mt-1 px-3">
       <div className="flex gap-2">
-        <Button size="sm" className="flex-1" onClick={handleCopy}>
-          {copyButtonText}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="flex flex-1">
+              <Button size="sm" className="flex-1" onClick={handleCopy} disabled={disabled || copyDisabled}>
+                {copyButtonText}
+              </Button>
+            </span>
+          </TooltipTrigger>
+          {copyDisabled && !!copyDisabledTooltip && (
+            <TooltipContent side="top" className="max-w-[260px]">
+              <p>{copyDisabledTooltip}</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
 
         <Tooltip>
           <TooltipTrigger asChild>
@@ -70,7 +93,7 @@ function ReplyActions({
                 size="sm"
                 className="w-full"
                 onClick={handleRegenerateClick}
-                disabled={disabled}
+                disabled={disabled || tweakDisabled}
               >
                 {disabled && <Spinner />}
                 {showTweakBox ? "Submit tweak" : tweakButtonText}
@@ -78,7 +101,7 @@ function ReplyActions({
             </span>
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-[260px]">
-            <p>{tweakButtonTooltip}</p>
+            <p>{tweakDisabled && tweakDisabledTooltip ? tweakDisabledTooltip : tweakButtonTooltip}</p>
           </TooltipContent>
         </Tooltip>
       </div>

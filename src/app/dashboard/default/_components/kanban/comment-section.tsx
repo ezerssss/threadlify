@@ -1,6 +1,6 @@
 import ReadMoreArea from "@foxeian/react-read-more";
 import ky from "ky";
-import { CopyIcon, InfoIcon } from "lucide-react";
+import { CopyIcon, InfoIcon, MessageCircleOff } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -25,6 +25,7 @@ interface PropsInterface {
   userName: string;
   postUrl: string;
   updateSinglePost: (postId: string, newData: any) => void;
+  authorId: string | null;
 }
 
 function CommentSection(props: PropsInterface) {
@@ -38,6 +39,7 @@ function CommentSection(props: PropsInterface) {
     postUrl,
     postId,
     updateSinglePost,
+    authorId,
   } = props;
   const setActivePost = useKanbanStore((state) => state.setActivePost);
 
@@ -121,6 +123,25 @@ function CommentSection(props: PropsInterface) {
 
     try {
       await navigator.clipboard.writeText(recommendedDM.dm);
+      toast.success("Copied to clipboard.");
+    } catch (error) {
+      toastError(error);
+    }
+  }
+
+  async function handleDMCopyAndOpen() {
+    if (!recommendedDM) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(recommendedDM.dm);
+
+      if (authorId) {
+        const dmUrl = `https://reddit.com/chat/user/${authorId}`;
+        window.open(dmUrl, "_blank");
+      }
+
       toast.success("Copied to clipboard.");
     } catch (error) {
       toastError(error);
@@ -259,9 +280,16 @@ function CommentSection(props: PropsInterface) {
               </Tooltip>
             </div>
 
+            {!authorId && (
+              <p className="text-muted-foreground ml-3 flex items-center gap-1.5 text-xs">
+                <MessageCircleOff size={12} className="shrink-0" />
+                Can&apos;t message this user—account may be deleted or suspended. You can still copy the message below.
+              </p>
+            )}
+
             <div className="px-3">
               <div className={cn("relative", isDMLoading && "animate-pulse")}>
-                <div className="border-primary bg-card z-20 block flex max-w-full cursor-default items-end justify-between space-y-2 rounded-md border p-2.5 text-sm shadow-xs">
+                <div className="border-primary bg-card z-20 flex max-w-full cursor-default items-end justify-between space-y-2 rounded-md border p-2.5 text-sm shadow-xs">
                   <p className="flex-1">{recommendedDM.dm}</p>
 
                   <CopyIcon className="cursor-pointer" size={14} onClick={handleDMCopy} />
@@ -270,11 +298,15 @@ function CommentSection(props: PropsInterface) {
             </div>
 
             <ReplyActions
-              copyButtonText="Copy message"
+              copyButtonText="Copy and open DM"
               tweakButtonText="Tweak DM"
               tweakButtonTooltip="Rewrite this DM only. Doesn't change your default tone."
               disabled={isDMLoading}
-              handleCopy={handleDMCopy}
+              handleCopy={handleDMCopyAndOpen}
+              copyDisabled={!authorId}
+              copyDisabledTooltip="You can't DM this user. Their account may be deleted, suspended, or restricted."
+              tweakDisabled={!authorId}
+              tweakDisabledTooltip="You can't message this user, so tweaking the DM isn't available."
               onRegenerate={(tweak) => handleDMTweak(tweak, postId)}
             />
           </section>
