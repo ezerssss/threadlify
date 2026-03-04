@@ -9,12 +9,20 @@ import PersonaSubredditsDialog from "@/app/dashboard/karma-builder/_components/p
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { UpgradeOverlay } from "@/components/upgrade-overlay";
-import { USER_PERSONA_CUSTOM_URL, USER_PERSONA_EDIT_URL, USER_PERSONA_PRESET_URL } from "@/constants/url";
+import {
+  USER_PERSONA_CUSTOM_URL,
+  USER_PERSONA_EDIT_URL,
+  USER_PERSONA_PRESET_URL,
+  USER_PERSONA_TASK_MARK_DONE_URL,
+  USER_PERSONA_TASK_MARK_SKIP_URL,
+} from "@/constants/url";
 import usePersonaSubreddits from "@/hooks/use-persona-subreddits";
+import usePersonaTasks, { type PersonaTaskWithId } from "@/hooks/use-persona-tasks";
 import useUser from "@/hooks/use-user";
 import { cn } from "@/lib/utils";
 import type { PersonaType } from "@/types/user";
@@ -87,9 +95,128 @@ function buildArraysFromCommaSeparated(value: string): string[] {
     .filter(Boolean);
 }
 
+interface PersonaTasksColumnProps {
+  readonly title: string;
+  readonly description: string;
+  readonly tasks: PersonaTaskWithId[];
+  readonly onTaskClick: (task: PersonaTaskWithId) => void;
+}
+
+function PersonaTasksColumn({ title, description, tasks, onTaskClick }: PersonaTasksColumnProps) {
+  const [showInactive, setShowInactive] = useState(false);
+
+  const hasTasks = tasks.length > 0;
+  const pendingCount = tasks.filter((t) => t.status === "pending").length;
+  const doneCount = tasks.filter((t) => t.status === "done").length;
+  const skippedCount = tasks.filter((t) => t.status === "skipped").length;
+
+  // Pending tasks first, then skipped, then done (optionally shown)
+  const visibleTasks = tasks
+    .filter((t) => (showInactive ? true : t.status === "pending"))
+    .slice()
+    .sort((a, b) => {
+      const order = { pending: 0, skipped: 1, done: 2 } as const;
+      return order[a.status] - order[b.status];
+    });
+
+  return (
+    <div className="bg-card flex flex-col gap-2 rounded-md border p-3 shadow-xs">
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-muted-foreground text-[11px] tracking-wide uppercase">{title}</p>
+          {hasTasks && (
+            <span className="bg-muted text-muted-foreground rounded-full px-2 py-[2px] text-[10px] font-medium">
+              {pendingCount} pending
+              {skippedCount > 0 && ` • ${skippedCount} skipped`}
+              {doneCount > 0 && ` • ${doneCount} done`}
+            </span>
+          )}
+        </div>
+        <p className="text-muted-foreground text-[13px] leading-snug">{description}</p>
+        {hasTasks && (
+          <p className="text-muted-foreground text-[11px]">
+            <span className="font-medium">{tasks.length}</span> task
+            {tasks.length === 1 ? "" : "s"} total
+          </p>
+        )}
+      </div>
+
+      {!hasTasks && (
+        <p className="text-muted-foreground mt-1 text-xs">
+          No tasks for this type yet. As Threadlify learns more about your persona, we&apos;ll add suggestions here.
+        </p>
+      )}
+
+      {hasTasks && (
+        <>
+          <ul className="text-muted-foreground mt-1 space-y-1.5 text-sm">
+            {visibleTasks.map((task) => {
+              const isDone = task.status === "done";
+              const isSkipped = task.status === "skipped";
+              const isPending = task.status === "pending";
+
+              let primaryLabel: string;
+              let secondaryLabel: string | null = null;
+              if (task.type === "post") {
+                primaryLabel = `Create a new post in r/${task.subreddit}`;
+                secondaryLabel = task.recommendedPost.title;
+              } else if (task.type === "comment") {
+                primaryLabel = `Comment in r/${task.subreddit}`;
+                secondaryLabel = task.post.title;
+              } else {
+                primaryLabel = `Upvote in r/${task.subreddit}`;
+                secondaryLabel = task.post.title;
+              }
+
+              return (
+                <li key={task.id}>
+                  <button
+                    type="button"
+                    className={cn(
+                      "bg-card w-full rounded-md border px-2 py-1.5 text-left shadow-xs transition-colors",
+                      "flex flex-col gap-0.5",
+                      "hover:border-primary/50 hover:bg-accent/40",
+                      isDone &&
+                        "border-emerald-300/70 bg-emerald-50/40 text-emerald-900 dark:border-emerald-700/60 dark:bg-emerald-950/20 dark:text-emerald-200",
+                      isSkipped && "border-muted-foreground/30 bg-muted/40 text-muted-foreground line-through",
+                    )}
+                    onClick={() => onTaskClick(task)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onTaskClick(task);
+                      }
+                    }}
+                  >
+                    <span className={cn("block text-[13px]", isPending && "font-medium")}>{primaryLabel}</span>
+                    {secondaryLabel && (
+                      <span className="text-muted-foreground mt-0.5 line-clamp-1 block text-xs">{secondaryLabel}</span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          {(doneCount > 0 || skippedCount > 0) && (
+            <button
+              type="button"
+              className="text-muted-foreground hover:text-foreground mt-1 self-end text-[11px] underline-offset-2 hover:underline"
+              onClick={() => setShowInactive((prev) => !prev)}
+            >
+              {showInactive ? "Hide skipped & done" : `Show skipped & done (${skippedCount + doneCount})`}
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function KarmaBuilderPage() {
   const { userData, idToken, claims, isLoading } = useUser();
   const { subreddits: personaSubreddits } = usePersonaSubreddits();
+  const { tasks: personaTasks } = usePersonaTasks();
 
   const [isSubmittingPreset, setIsSubmittingPreset] = useState(false);
   const [isSubmittingCustom, setIsSubmittingCustom] = useState(false);
@@ -116,6 +243,8 @@ export default function KarmaBuilderPage() {
 
   const persona: PersonaType | null = userData?.persona ?? null;
   const hasSelectedPreset = !!userData?.selectedPersonaPreset;
+  const [activeTask, setActiveTask] = useState<PersonaTaskWithId | null>(null);
+  const [taskActionLoading, setTaskActionLoading] = useState<string | null>(null);
 
   const isKarmaBuilderLocked = useMemo(() => {
     if (!userData) return false;
@@ -289,6 +418,35 @@ export default function KarmaBuilderPage() {
   const showSkeleton = isLoading && !userData;
 
   const showPresetSelector = !persona;
+
+  async function handleTaskAction(taskId: string, action: "done" | "skip") {
+    if (!ensureCanUseFeature()) return;
+
+    try {
+      setTaskActionLoading(taskId + action);
+
+      const url = action === "done" ? USER_PERSONA_TASK_MARK_DONE_URL : USER_PERSONA_TASK_MARK_SKIP_URL;
+
+      await ky.post(url, {
+        json: { taskId },
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      if (action === "done") {
+        toast.success("Task marked as done.");
+      } else {
+        toast.success("Task skipped.");
+      }
+      // Close the popup for both done and skip
+      setActiveTask((prev) => (prev && prev.id === taskId ? null : prev));
+    } catch {
+      toast.error("Failed to update task. Please try again.");
+    } finally {
+      setTaskActionLoading(null);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -723,32 +881,24 @@ export default function KarmaBuilderPage() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="grid gap-3 md:grid-cols-3">
-                        <div className="bg-muted/40 flex flex-col gap-2 rounded-md border p-3">
-                          <p className="text-muted-foreground text-[11px] tracking-wide uppercase">Post</p>
-                          <ul className="text-muted-foreground space-y-1 text-xs">
-                            <li>• Share a small story or win in a subreddit that matches this persona.</li>
-                            <li>• Ask a genuine question that would naturally come from this person.</li>
-                            <li>• Once in a while, post something unrelated but on‑brand to feel human.</li>
-                          </ul>
-                        </div>
-                        <div className="bg-muted/40 flex flex-col gap-2 rounded-md border p-3">
-                          <p className="text-muted-foreground text-[11px] tracking-wide uppercase">Comment</p>
-                          <ul className="text-muted-foreground space-y-1 text-xs">
-                            <li>• Leave a thoughtful, specific comment on a thread your persona would care about.</li>
-                            <li>• Add one follow‑up comment where you ask a clarifying question.</li>
-                            <li>• Reply to someone else&apos;s comment with a short, helpful perspective.</li>
-                          </ul>
-                        </div>
-                        <div className="bg-muted/40 flex flex-col gap-2 rounded-md border p-3">
-                          <p className="text-muted-foreground text-[11px] tracking-wide uppercase">Upvote</p>
-                          <ul className="text-muted-foreground space-y-1 text-xs">
-                            <li>
-                              • Upvote posts that match your persona&apos;s interests in your configured subreddits.
-                            </li>
-                            <li>• Upvote a few comments in threads where you already participated.</li>
-                            <li>• Occasionally upvote something random but plausible to avoid looking robotic.</li>
-                          </ul>
-                        </div>
+                        <PersonaTasksColumn
+                          title="Post"
+                          description="Short prompts for what kind of new posts this persona should create."
+                          tasks={personaTasks.filter((task) => task.type === "post")}
+                          onTaskClick={setActiveTask}
+                        />
+                        <PersonaTasksColumn
+                          title="Comment"
+                          description="Replies this persona should leave on existing threads."
+                          tasks={personaTasks.filter((task) => task.type === "comment")}
+                          onTaskClick={setActiveTask}
+                        />
+                        <PersonaTasksColumn
+                          title="Upvote"
+                          description="Where this persona should quietly upvote to make the history look natural."
+                          tasks={personaTasks.filter((task) => task.type === "upvote")}
+                          onTaskClick={setActiveTask}
+                        />
                       </CardContent>
                     </Card>
                     <Card>
@@ -769,6 +919,153 @@ export default function KarmaBuilderPage() {
                       </CardContent>
                     </Card>
                   </section>
+
+                  {activeTask && (
+                    <Dialog
+                      open={!!activeTask}
+                      onOpenChange={(open) => {
+                        if (!open) {
+                          setActiveTask(null);
+                        }
+                      }}
+                    >
+                      <DialogContent className="bg-card max-w-xl">
+                        <DialogHeader>
+                          <DialogTitle>
+                            {activeTask.type === "post" && `Create a post in r/${activeTask.subreddit}`}
+                            {activeTask.type === "comment" && `Comment task in r/${activeTask.subreddit}`}
+                            {activeTask.type === "upvote" && `Upvote task in r/${activeTask.subreddit}`}
+                          </DialogTitle>
+                          <DialogDescription>
+                            This is a suggestion for what you can do on Reddit. You&apos;ll complete the action
+                            yourself; Threadlify is just giving you the brief.
+                          </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                          {activeTask.type === "post" && (
+                            <>
+                              <div className="space-y-1">
+                                <p className="text-muted-foreground text-xs tracking-wide uppercase">Suggested title</p>
+                                <p className="text-sm font-medium">{activeTask.recommendedPost.title}</p>
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-muted-foreground text-xs tracking-wide uppercase">Suggested body</p>
+                                <p className="text-sm whitespace-pre-wrap">{activeTask.recommendedPost.body}</p>
+                              </div>
+                              <div className="flex items-center justify-between gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={async () => {
+                                    try {
+                                      await navigator.clipboard.writeText(activeTask.recommendedPost.body);
+                                      toast.success("Copied post body to clipboard.");
+                                    } catch {
+                                      toast.error("Failed to copy post body to clipboard.");
+                                    }
+                                    window.open(`https://reddit.com/r/${activeTask.subreddit}`, "_blank", "noreferrer");
+                                  }}
+                                >
+                                  Copy & open r/{activeTask.subreddit}
+                                </Button>
+                              </div>
+                            </>
+                          )}
+
+                          {activeTask.type === "comment" && (
+                            <>
+                              <div className="space-y-1">
+                                <p className="text-muted-foreground text-xs tracking-wide uppercase">Target post</p>
+                                <p className="text-sm font-medium">{activeTask.post.title}</p>
+                              </div>
+                              {activeTask.targetComment && (
+                                <div className="bg-muted/40 space-y-1 rounded-md p-2">
+                                  <p className="text-muted-foreground text-[11px] tracking-wide uppercase">
+                                    Target comment
+                                  </p>
+                                  <p className="text-xs whitespace-pre-wrap">{activeTask.targetComment.body}</p>
+                                  <p className="text-muted-foreground mt-1 text-[11px]">
+                                    — {activeTask.targetComment.author}
+                                  </p>
+                                </div>
+                              )}
+                              <div className="space-y-1">
+                                <p className="text-muted-foreground text-xs tracking-wide uppercase">Suggested reply</p>
+                                <p className="text-sm whitespace-pre-wrap">{activeTask.recommendedReply}</p>
+                              </div>
+                              <div className="flex items-center justify-between gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={async () => {
+                                    try {
+                                      await navigator.clipboard.writeText(activeTask.recommendedReply);
+                                      toast.success("Copied reply to clipboard.");
+                                    } catch {
+                                      toast.error("Failed to copy reply to clipboard.");
+                                    }
+                                    const url = activeTask.targetComment?.url ?? activeTask.post.url;
+                                    window.open(url, "_blank", "noreferrer");
+                                  }}
+                                >
+                                  Copy & open on Reddit
+                                </Button>
+                              </div>
+                            </>
+                          )}
+
+                          {activeTask.type === "upvote" && (
+                            <>
+                              <div className="space-y-1">
+                                <p className="text-muted-foreground text-xs tracking-wide uppercase">Post</p>
+                                <p className="text-sm font-medium">{activeTask.post.title}</p>
+                                <p className="text-muted-foreground text-xs">
+                                  r/{activeTask.subreddit} • score {activeTask.post.score}
+                                </p>
+                              </div>
+                              <div className="flex items-center justify-between gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => window.open(activeTask.post.url, "_blank", "noreferrer")}
+                                >
+                                  Open post on Reddit
+                                </Button>
+                              </div>
+                            </>
+                          )}
+
+                          <div className="flex items-center justify-end gap-2 pt-2">
+                            <Button variant="ghost" size="sm" onClick={() => setActiveTask(null)}>
+                              Close
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={activeTask.status !== "pending" || taskActionLoading === activeTask.id + "skip"}
+                              onClick={() => handleTaskAction(activeTask.id, "skip")}
+                            >
+                              {taskActionLoading === activeTask.id + "skip" && (
+                                <Loader2Icon className="mr-2 h-3 w-3 animate-spin" />
+                              )}
+                              Skip task
+                            </Button>
+                            <Button
+                              size="sm"
+                              disabled={activeTask.status !== "pending" || taskActionLoading === activeTask.id + "done"}
+                              onClick={() => handleTaskAction(activeTask.id, "done")}
+                            >
+                              {taskActionLoading === activeTask.id + "done" && (
+                                <Loader2Icon className="mr-2 h-3 w-3 animate-spin" />
+                              )}
+                              Mark as done
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
                 </section>
               )}
             </>

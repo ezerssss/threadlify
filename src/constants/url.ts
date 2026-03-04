@@ -26,6 +26,8 @@ export const USER_PERSONA_PRESET_URL = `${BACKEND_BASE_URL}/user/persona/preset`
 export const USER_PERSONA_CUSTOM_URL = `${BACKEND_BASE_URL}/user/persona/custom`;
 export const USER_PERSONA_EDIT_URL = `${BACKEND_BASE_URL}/user/persona/edit`;
 export const USER_PERSONA_SUBREDDITS_URL = `${BACKEND_BASE_URL}/user/persona/subreddits`;
+export const USER_PERSONA_TASK_MARK_DONE_URL = `${BACKEND_BASE_URL}/user/persona/tasks/mark-done`;
+export const USER_PERSONA_TASK_MARK_SKIP_URL = `${BACKEND_BASE_URL}/user/persona/tasks/skip`;
 
 export const ACCEPT_INVITE_URL = `${BACKEND_BASE_URL}/invite/accept`;
 
