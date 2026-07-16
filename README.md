@@ -11,7 +11,7 @@ Reddit scanner that finds relevant threads for your products to help you evaluat
 
 - One-step onboarding that automatically analyzes and identifies your product based on your landing page.
 - Daily scraping of relevant subreddits to catch posts your product might be relevant in.
-- Ability to adjust the filtering criteria using natural language to explain why surfaced posts are not relevant.
+- Users can tag and explain why surfaced posts are not relevant using natural langauge so that similar posts do not get surfaced again.
 
 ## Demo / Screenshot
 
