@@ -27,7 +27,7 @@ Typescript · Next.js · Express · Firebase · Redis
 ## Notes
 
 - Learned a lot of scraping methods and error handling as scraping is not reliable as I wish it can be.
-- Implemented a queue system using redis (BullMQ) to handle job processing to handle resumability when updates or crashes happen.
+- Implemented a queue system using redis (BullMQ) to handle job processing resumability when updates or crashes happen.
 - This was deployed on a DigitalOcean droplet so I had to ensure that when I update the app, I had to make sure no jobs are processing or wait for the current one to stop.
 - This was genuinely a fun product to implement as it had a lot of moving parts.
 - A good addition might be to host the LLM locally so that the cost was negligible (although the cost was relatively small since we had a lot of aggressive optimizations to prevent unnecessary token usage such as aggressive filtering using hueristics and/or smaller llms to handle simple tasks).
